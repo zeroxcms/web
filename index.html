@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>0xCMS — Edge-Native Content Management on Cloudflare Workers</title>
+  <meta name="description" content="0xCMS is an edge-native, open content management system deployed on Cloudflare Workers. OAuth 2.1, pluggable publish targets (D1, static JSON in R2, IPFS via plugins), private R2 media, page versioning, and a Worker plugin system." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            void: '#05010f',
+            panel: '#0b0620',
+            neon: '#22d3ee',
+            plasma: '#a855f7',
+            mint: '#34d399',
+          },
+          fontFamily: {
+            mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+            sans: ['"Space Grotesk"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    body { background-color: #05010f; }
+
+    /* Perspective grid floor */
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(168, 85, 247, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34, 211, 238, 0.07) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+    }
+
+    .glow-orb {
+      position: absolute;
+      border-radius: 9999px;
+      filter: blur(110px);
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    .gradient-text {
+      background: linear-gradient(100deg, #22d3ee 0%, #a855f7 50%, #34d399 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .glass {
+      background: rgba(15, 8, 36, 0.55);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(168, 85, 247, 0.18);
+    }
+
+    .glass-hover { transition: border-color .3s, transform .3s, box-shadow .3s; }
+    .glass-hover:hover {
+      border-color: rgba(34, 211, 238, 0.45);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px -12px rgba(34, 211, 238, 0.25);
+    }
+
+    .neon-btn {
+      box-shadow: 0 0 24px rgba(34, 211, 238, 0.35), inset 0 0 12px rgba(34, 211, 238, 0.15);
+      transition: box-shadow .3s, transform .2s;
+    }
+    .neon-btn:hover {
+      box-shadow: 0 0 44px rgba(34, 211, 238, 0.6), inset 0 0 18px rgba(34, 211, 238, 0.25);
+      transform: translateY(-2px);
+    }
+
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity .7s ease, transform .7s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    .terminal-caret::after {
+      content: '▋';
+      animation: blink 1.1s steps(1) infinite;
+      color: #34d399;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+    .floaty { animation: float 7s ease-in-out infinite; }
+
+    @keyframes scan {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(400%); }
+    }
+    .scanline {
+      animation: scan 5s linear infinite;
+      background: linear-gradient(to bottom, transparent, rgba(34, 211, 238, 0.06), transparent);
+    }
+
+    .tick { color: #34d399; }
+
+    pre code { font-family: 'JetBrains Mono', monospace; }
+
+    ::selection { background: rgba(168, 85, 247, 0.45); color: #fff; }
+
+    html { scrollbar-color: #4c1d95 #05010f; }
+
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="font-sans text-slate-300 antialiased overflow-x-hidden">
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+  <!-- ───────────────────────── NAV ───────────────────────── -->
+  <header id="navbar" class="fixed top-0 inset-x-0 z-50 transition-all duration-300">
+    <nav class="max-w-7xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2.5 group">
+        <span class="relative grid place-items-center w-9 h-9 rounded-lg bg-gradient-to-br from-neon/20 to-plasma/20 border border-plasma/40">
+          <span class="font-mono font-bold text-neon text-sm">0x</span>
+          <span class="absolute -inset-px rounded-lg border border-neon/0 group-hover:border-neon/50 transition-colors"></span>
+        </span>
+        <span class="font-mono font-bold text-lg text-white tracking-tight">0x<span class="gradient-text">CMS</span></span>
+      </a>
+
+      <div class="hidden md:flex items-center gap-8 font-mono text-sm">
+        <a href="#features" class="text-slate-400 hover:text-neon transition-colors">/features</a>
+        <a href="#architecture" class="text-slate-400 hover:text-neon transition-colors">/architecture</a>
+        <a href="#get-started" class="text-slate-400 hover:text-neon transition-colors">/get-started</a>
+        <a href="https://cms.eventuai.com" target="_blank" rel="noopener"
+           class="neon-btn px-5 py-2 rounded-lg bg-neon/10 border border-neon/50 text-neon font-semibold">
+          Launch App ↗
+        </a>
+      </div>
+
+      <button id="menu-btn" class="md:hidden text-slate-300 p-2" aria-label="Toggle menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </nav>
+
+    <!-- mobile menu -->
+    <div id="mobile-menu" class="hidden md:hidden glass mx-4 rounded-xl p-4 flex flex-col gap-3 font-mono text-sm">
+      <a href="#features" class="text-slate-300 hover:text-neon py-1">/features</a>
+      <a href="#architecture" class="text-slate-300 hover:text-neon py-1">/architecture</a>
+      <a href="#get-started" class="text-slate-300 hover:text-neon py-1">/get-started</a>
+      <a href="https://cms.eventuai.com" target="_blank" rel="noopener" class="text-neon font-semibold py-1">Launch App ↗</a>
+    </div>
+  </header>
+
+  <!-- ───────────────────────── HERO ───────────────────────── -->
+  <section class="relative min-h-screen flex items-center justify-center pt-24 pb-16">
+    <div class="grid-bg absolute inset-0"></div>
+    <div class="glow-orb w-[34rem] h-[34rem] bg-plasma top-[-8rem] left-[-10rem]"></div>
+    <div class="glow-orb w-[30rem] h-[30rem] bg-neon bottom-[-6rem] right-[-8rem]"></div>
+
+    <div class="relative max-w-7xl mx-auto px-5 sm:px-8 grid lg:grid-cols-2 gap-14 items-center">
+      <div>
+        <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 font-mono text-xs text-mint mb-7">
+          <span class="w-2 h-2 rounded-full bg-mint animate-pulse"></span>
+          deployed at the edge · 300+ locations
+        </div>
+
+        <h1 class="text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.05] tracking-tight">
+          Content,<br />
+          <span class="gradient-text">decentralized</span><br />
+          by design.
+        </h1>
+
+        <p class="mt-6 text-lg text-slate-400 max-w-xl leading-relaxed">
+          <span class="text-white font-semibold">0xCMS</span> is an edge-native content management
+          system that runs entirely on Cloudflare Workers. OAuth 2.1 sign-in, publishing that
+          fans out to any target — database, static JSON, IPFS — versioned content, private
+          media vault. Zero servers, zero cold starts.
+        </p>
+
+        <div class="mt-9 flex flex-wrap items-center gap-4">
+          <a href="https://cms.eventuai.com" target="_blank" rel="noopener"
+             class="neon-btn px-7 py-3.5 rounded-xl bg-gradient-to-r from-neon/20 to-plasma/20 border border-neon/60 text-white font-semibold font-mono">
+            ▶ Try it live
+          </a>
+          <a href="#get-started"
+             class="px-7 py-3.5 rounded-xl glass glass-hover text-slate-200 font-mono font-semibold">
+            $ get started
+          </a>
+        </div>
+
+        <div class="mt-10 grid grid-cols-3 gap-4 max-w-md font-mono">
+          <div>
+            <div class="text-2xl font-bold text-neon" data-count="0" data-target="0">0<span class="text-slate-500 text-base">ms</span></div>
+            <div class="text-xs text-slate-500 mt-1">cold starts</div>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-plasma">n×</div>
+            <div class="text-xs text-slate-500 mt-1">publish targets</div>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-mint">∞</div>
+            <div class="text-xs text-slate-500 mt-1">page versions</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Terminal card -->
+      <div class="relative floaty">
+        <div class="absolute -inset-1 bg-gradient-to-r from-neon/30 via-plasma/30 to-mint/30 rounded-2xl blur-lg"></div>
+        <div class="relative glass rounded-2xl overflow-hidden">
+          <div class="relative overflow-hidden">
+            <div class="scanline absolute inset-x-0 h-24 pointer-events-none"></div>
+            <div class="flex items-center gap-2 px-5 py-3.5 border-b border-plasma/20">
+              <span class="w-3 h-3 rounded-full bg-red-500/70"></span>
+              <span class="w-3 h-3 rounded-full bg-yellow-500/70"></span>
+              <span class="w-3 h-3 rounded-full bg-mint/70"></span>
+              <span class="ml-3 font-mono text-xs text-slate-500">0xcms — wrangler@edge</span>
+            </div>
+            <div class="p-5 sm:p-6 font-mono text-[13px] leading-7">
+              <p><span class="text-plasma">❯</span> <span class="text-slate-200">npm run deploy</span></p>
+              <p class="text-slate-500">Compiled Tailwind admin UI ✓</p>
+              <p class="text-slate-500">Uploaded <span class="text-neon">0xcms</span> (2.41 sec)</p>
+              <p class="text-slate-500">D1 bindings: <span class="text-plasma">DB</span> · <span class="text-plasma">PUBLISHED_DB</span></p>
+              <p class="text-slate-500">R2 vault: <span class="text-mint">MEDIA_BUCKET</span> [private]</p>
+              <p class="text-slate-500">Publish targets: <span class="text-neon">d1</span> · <span class="text-neon">r2</span> · <span class="text-neon">plugin:ipfs</span></p>
+              <p class="text-slate-500">Durable Object: <span class="text-neon">PageSyncDO</span> [realtime]</p>
+              <p><span class="tick">✔</span> <span class="text-slate-300">Deployed to</span> <a href="https://cms.eventuai.com" target="_blank" rel="noopener" class="text-neon underline decoration-neon/40 hover:decoration-neon">https://cms.eventuai.com</a></p>
+              <p class="mt-2"><span class="text-plasma">❯</span> <span id="typed" class="text-slate-200 terminal-caret"></span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── FEATURES ───────────────────────── -->
+  <section id="features" class="relative py-24">
+    <div class="glow-orb w-[26rem] h-[26rem] bg-plasma top-1/3 left-1/2 -translate-x-1/2"></div>
+    <div class="relative max-w-7xl mx-auto px-5 sm:px-8">
+      <div class="reveal text-center max-w-2xl mx-auto">
+        <p class="font-mono text-sm text-neon mb-3">// 01 — introduction</p>
+        <h2 class="text-4xl sm:text-5xl font-bold text-white tracking-tight">The protocol layer for <span class="gradient-text">your content</span></h2>
+        <p class="mt-5 text-slate-400 text-lg">Everything a serious publishing stack needs, compiled into a single Worker. No origin servers. No databases to babysit. Trustless by default — even your media bucket is private.</p>
+      </div>
+
+      <div class="mt-16 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="reveal glass glass-hover rounded-2xl p-7">
+          <div class="w-11 h-11 rounded-xl bg-neon/10 border border-neon/30 grid place-items-center font-mono text-neon mb-5">🔐</div>
+          <h3 class="text-white font-semibold text-lg mb-2">OAuth 2.1 + PKCE</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">Sign in with Eventuai, GitHub, or Google. Dual JWTs — 15-minute access tokens plus rotatable 7-day refresh tokens, hashed in D1 for instant revocation.</p>
+        </div>
+
+        <div class="reveal glass glass-hover rounded-2xl p-7">
+          <div class="w-11 h-11 rounded-xl bg-plasma/10 border border-plasma/30 grid place-items-center font-mono text-plasma mb-5">⛓️</div>
+          <h3 class="text-white font-semibold text-lg mb-2">Pluggable publish targets</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">Publishing fans one snapshot out through adapters: the published D1 store, static JSON in an R2 bucket, or any plugin Worker — pin to IPFS, ping a webhook, feed a search index. Per-target failures surface in the editor.</p>
+        </div>
+
+        <div class="reveal glass glass-hover rounded-2xl p-7">
+          <div class="w-11 h-11 rounded-xl bg-mint/10 border border-mint/30 grid place-items-center font-mono text-mint mb-5">🧬</div>
+          <h3 class="text-white font-semibold text-lg mb-2">Versioned everything</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">Every save mints a new page version. Roll back any page to any point in its history — your content ledger is append-only.</p>
+        </div>
+
+        <div class="reveal glass glass-hover rounded-2xl p-7">
+          <div class="w-11 h-11 rounded-xl bg-neon/10 border border-neon/30 grid place-items-center font-mono text-neon mb-5">🛰️</div>
+          <h3 class="text-white font-semibold text-lg mb-2">Realtime page sync</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">A Durable Object coordinates concurrent editors per page, so your team never overwrites each other's work.</p>
+        </div>
+
+        <div class="reveal glass glass-hover rounded-2xl p-7">
+          <div class="w-11 h-11 rounded-xl bg-plasma/10 border border-plasma/30 grid place-items-center font-mono text-plasma mb-5">🗄️</div>
+          <h3 class="text-white font-semibold text-lg mb-2">Private media vault</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">Uploads land in a private R2 bucket — never public. The Worker gates every read at <code class="text-neon/80">/media/*</code> with on-the-fly image resizing for previews.</p>
+        </div>
+
+        <div class="reveal glass glass-hover rounded-2xl p-7">
+          <div class="w-11 h-11 rounded-xl bg-mint/10 border border-mint/30 grid place-items-center font-mono text-mint mb-5">🧩</div>
+          <h3 class="text-white font-semibold text-lg mb-2">Worker plugins</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">Extend with separate Workers over service bindings: lifecycle hooks, custom content types, fields &amp; blocks, admin pages, publish targets. No runtime installs — just bind and redeploy.</p>
+        </div>
+      </div>
+
+      <!-- security strip -->
+      <div class="reveal mt-12 glass rounded-2xl p-6 sm:p-8">
+        <div class="flex flex-wrap items-center justify-center gap-x-10 gap-y-4 font-mono text-xs sm:text-sm text-slate-400">
+          <span class="text-slate-500">HARDENED BY DEFAULT:</span>
+          <span><span class="tick">✔</span> CSP nonces</span>
+          <span><span class="tick">✔</span> Rate limiting</span>
+          <span><span class="tick">✔</span> Cross-origin mutation guard</span>
+          <span><span class="tick">✔</span> Canonical host enforcement</span>
+          <span><span class="tick">✔</span> Role-based access</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── ARCHITECTURE ───────────────────────── -->
+  <section id="architecture" class="relative py-24">
+    <div class="relative max-w-7xl mx-auto px-5 sm:px-8">
+      <div class="reveal text-center max-w-2xl mx-auto">
+        <p class="font-mono text-sm text-plasma mb-3">// 02 — architecture</p>
+        <h2 class="text-4xl sm:text-5xl font-bold text-white tracking-tight">Publish flow, <span class="gradient-text">on-chain style</span></h2>
+        <p class="mt-5 text-slate-400 text-lg">Drafts stay private. One publish action mints a snapshot and fans it out through adapters — to the published database, a static-JSON bucket, or any plugin Worker you bind. Readers never touch your admin data.</p>
+      </div>
+
+      <div class="reveal mt-14 glass rounded-2xl p-7 sm:p-10 overflow-x-auto">
+        <div class="min-w-[720px] flex items-center justify-between gap-4 font-mono text-sm">
+          <div class="flex-1 rounded-xl border border-plasma/40 bg-plasma/5 p-5 text-center">
+            <div class="text-plasma font-bold mb-1.5">DB · private</div>
+            <div class="text-xs text-slate-400 leading-6">users · sessions<br/>draft_pages · page_versions<br/>tags · trash · media_files</div>
+          </div>
+          <div class="flex flex-col items-center gap-1.5 text-xs">
+            <span class="text-mint">— publish ⟶</span>
+            <svg width="120" height="20"><line x1="0" y1="10" x2="120" y2="10" stroke="url(#g1)" stroke-width="2" stroke-dasharray="6 5"><animate attributeName="stroke-dashoffset" from="22" to="0" dur="1s" repeatCount="indefinite"/></line><defs><linearGradient id="g1"><stop offset="0%" stop-color="#a855f7"/><stop offset="100%" stop-color="#34d399"/></linearGradient></defs></svg>
+            <span class="text-slate-500">⟵ un-publish —</span>
+          </div>
+          <div class="flex-1 flex flex-col gap-2.5">
+            <div class="rounded-xl border border-mint/40 bg-mint/5 p-3 text-center">
+              <div class="text-mint font-bold text-xs mb-0.5">d1 · PUBLISHED_DB</div>
+              <div class="text-[11px] text-slate-400">live_pages · live_page_tags</div>
+            </div>
+            <div class="rounded-xl border border-mint/40 bg-mint/5 p-3 text-center">
+              <div class="text-mint font-bold text-xs mb-0.5">r2 · static JSON</div>
+              <div class="text-[11px] text-slate-400">pages/&lt;uuid&gt;.json · index.json</div>
+            </div>
+            <div class="rounded-xl border border-plasma/40 bg-plasma/5 p-3 text-center">
+              <div class="text-plasma font-bold text-xs mb-0.5">plugin · your Worker</div>
+              <div class="text-[11px] text-slate-400">IPFS · webhooks · search index</div>
+            </div>
+          </div>
+          <div class="flex flex-col items-center gap-1.5 text-xs">
+            <span class="text-neon">— reads ⟶</span>
+            <svg width="120" height="20"><line x1="0" y1="10" x2="120" y2="10" stroke="#22d3ee" stroke-width="2" stroke-dasharray="6 5"><animate attributeName="stroke-dashoffset" from="22" to="0" dur="1s" repeatCount="indefinite"/></line></svg>
+            <span class="text-slate-500">edge cache</span>
+          </div>
+          <div class="flex-1 rounded-xl border border-neon/40 bg-neon/5 p-5 text-center">
+            <div class="text-neon font-bold mb-1.5">🌐 Public site</div>
+            <div class="text-xs text-slate-400 leading-6">Liquid templates<br/>served from 300+<br/>edge locations</div>
+          </div>
+        </div>
+        <p class="mt-6 text-center font-mono text-xs text-slate-500">PUBLISH_TARGETS = <span class="text-mint">"d1,r2"</span> · plugins opt in with <span class="text-plasma">publishTarget: true</span> · per-target failures reported, never silent</p>
+      </div>
+
+      <div class="reveal mt-8 grid sm:grid-cols-3 gap-5 font-mono text-sm">
+        <div class="glass rounded-xl p-5 text-center"><span class="text-neon">Hono</span><span class="text-slate-500"> + </span><span class="text-plasma">TypeScript</span><div class="text-xs text-slate-500 mt-1.5">router &amp; runtime</div></div>
+        <div class="glass rounded-xl p-5 text-center"><span class="text-mint">Tailwind</span><span class="text-slate-500"> + </span><span class="text-neon">VanillaJS</span><div class="text-xs text-slate-500 mt-1.5">zero-framework admin UI</div></div>
+        <div class="glass rounded-xl p-5 text-center"><span class="text-plasma">LiquidJS</span><span class="text-slate-500"> + </span><span class="text-mint">Emmet</span><div class="text-xs text-slate-500 mt-1.5">templating &amp; authoring</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── GET STARTED ───────────────────────── -->
+  <section id="get-started" class="relative py-24">
+    <div class="glow-orb w-[28rem] h-[28rem] bg-neon top-10 right-[-10rem]"></div>
+    <div class="relative max-w-4xl mx-auto px-5 sm:px-8">
+      <div class="reveal text-center">
+        <p class="font-mono text-sm text-mint mb-3">// 03 — get started</p>
+        <h2 class="text-4xl sm:text-5xl font-bold text-white tracking-tight">Mint your <span class="gradient-text">own instance</span></h2>
+        <p class="mt-5 text-slate-400 text-lg">From clone to edge deployment in nine steps. All you need is a Cloudflare account and <code class="font-mono text-neon text-base">wrangler</code>.</p>
+      </div>
+
+      <div class="mt-14 space-y-6">
+
+        <!-- step template -->
+        <div class="reveal glass rounded-2xl overflow-hidden">
+          <div class="flex items-center gap-4 px-6 pt-5">
+            <span class="font-mono text-xs text-void bg-neon rounded-md px-2.5 py-1 font-bold">01</span>
+            <h3 class="text-white font-semibold">Install dependencies</h3>
+          </div>
+          <div class="p-6 pt-4">
+            <div class="relative rounded-xl bg-black/50 border border-white/5 group">
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
+              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-600">$</span> <span class="text-slate-200">npm install</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="reveal glass rounded-2xl overflow-hidden">
+          <div class="flex items-center gap-4 px-6 pt-5">
+            <span class="font-mono text-xs text-void bg-neon rounded-md px-2.5 py-1 font-bold">02</span>
+            <h3 class="text-white font-semibold">Create the D1 databases</h3>
+          </div>
+          <div class="p-6 pt-4">
+            <p class="text-sm text-slate-400 mb-3">Two isolated stores: <code class="text-plasma">cms</code> for private admin data, <code class="text-mint">cms-published</code> for live content only. Copy the printed <code class="text-neon">database_id</code> values into <code class="text-neon">wrangler.toml</code>.</p>
+            <div class="relative rounded-xl bg-black/50 border border-white/5 group">
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
+              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-600">$</span> <span class="text-slate-200">npx wrangler d1 create cms</span>
+<span class="text-slate-600">$</span> <span class="text-slate-200">npx wrangler d1 create cms-published</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="reveal glass rounded-2xl overflow-hidden">
+          <div class="flex items-center gap-4 px-6 pt-5">
+            <span class="font-mono text-xs text-void bg-neon rounded-md px-2.5 py-1 font-bold">03</span>
+            <h3 class="text-white font-semibold">Run migrations</h3>
+          </div>
+          <div class="p-6 pt-4">
+            <p class="text-sm text-slate-400 mb-3">Add <code class="text-neon">--remote</code> for production. Locally, <code class="text-neon">npm run db:migrate</code> applies both.</p>
+            <div class="relative rounded-xl bg-black/50 border border-white/5 group">
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
+              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-600">$</span> <span class="text-slate-200">npx wrangler d1 migrations apply cms</span>
+<span class="text-slate-600">$</span> <span class="text-slate-200">npx wrangler d1 migrations apply cms-published</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="reveal glass rounded-2xl overflow-hidden">
+          <div class="flex items-center gap-4 px-6 pt-5">
+            <span class="font-mono text-xs text-void bg-neon rounded-md px-2.5 py-1 font-bold">04</span>
+            <h3 class="text-white font-semibold">Create the private R2 media vault</h3>
+          </div>
+          <div class="p-6 pt-4">
+            <p class="text-sm text-slate-400 mb-3">The bucket stays private; the Worker serves objects at <code class="text-neon">/media/&lt;key&gt;</code>. The <code class="text-plasma">MEDIA_BUCKET</code> binding ships in <code class="text-neon">wrangler.toml</code>.</p>
+            <div class="relative rounded-xl bg-black/50 border border-white/5 group">
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
+              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-600">$</span> <span class="text-slate-200">npx wrangler r2 bucket create worker-cms-media</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="reveal glass rounded-2xl overflow-hidden">
+          <div class="flex items-center gap-4 px-6 pt-5">
+            <span class="font-mono text-xs text-void bg-neon rounded-md px-2.5 py-1 font-bold">05</span>
+            <h3 class="text-white font-semibold">Configure secrets</h3>
+          </div>
+          <div class="p-6 pt-4">
+            <p class="text-sm text-slate-400 mb-3">⚠️ The JWT secret must be <span class="text-white font-semibold">at least 32 characters</span> — the Worker refuses to serve in production with a weaker key. Create <code class="text-neon">.dev.vars</code> for local dev.</p>
+            <div class="relative rounded-xl bg-black/50 border border-white/5 group">
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
+              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-500"># random 32-byte signing key</span>
+<span class="text-slate-600">$</span> <span class="text-slate-200">openssl rand -hex 32 | npx wrangler secret put JWT_SECRET</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="reveal glass rounded-2xl overflow-hidden">
+          <div class="flex items-center gap-4 px-6 pt-5">
+            <span class="font-mono text-xs text-void bg-neon rounded-md px-2.5 py-1 font-bold">06</span>
+            <h3 class="text-white font-semibold">Enable OAuth providers</h3>
+          </div>
+          <div class="p-6 pt-4">
+            <p class="text-sm text-slate-400 mb-3">Pick your gateways in <code class="text-neon">wrangler.toml</code>, then add a client ID + secret per provider.</p>
+            <div class="relative rounded-xl bg-black/50 border border-white/5 group">
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
+              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-plasma">ENABLED_PROVIDERS</span> <span class="text-slate-500">=</span> <span class="text-mint">"eventuai,github,google"</span>
+<span class="text-plasma">GITHUB_CLIENT_ID</span>  <span class="text-slate-500">=</span> <span class="text-mint">"&lt;client-id&gt;"</span></code></pre>
+            </div>
+            <div class="relative rounded-xl bg-black/50 border border-white/5 group mt-3">
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
+              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-600">$</span> <span class="text-slate-200">npx wrangler secret put GITHUB_CLIENT_SECRET</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="reveal glass rounded-2xl overflow-hidden">
+          <div class="flex items-center gap-4 px-6 pt-5">
+            <span class="font-mono text-xs text-void bg-neon rounded-md px-2.5 py-1 font-bold">07</span>
+            <h3 class="text-white font-semibold">Grant yourself admin</h3>
+          </div>
+          <div class="p-6 pt-4">
+            <p class="text-sm text-slate-400 mb-3">Sign in once, then promote your account. Roles are a comma-separated list.</p>
+            <div class="relative rounded-xl bg-black/50 border border-white/5 group">
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
+              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-600">$</span> <span class="text-slate-200">npx wrangler d1 execute cms --remote \
+    --command </span><span class="text-mint">"UPDATE users SET role='admin' WHERE email='you@example.com'"</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="reveal glass rounded-2xl overflow-hidden">
+          <div class="flex items-center gap-4 px-6 pt-5">
+            <span class="font-mono text-xs text-void bg-mint rounded-md px-2.5 py-1 font-bold">08</span>
+            <h3 class="text-white font-semibold">Run locally</h3>
+          </div>
+          <div class="p-6 pt-4">
+            <div class="relative rounded-xl bg-black/50 border border-white/5 group">
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
+              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-600">$</span> <span class="text-slate-200">npm run dev</span>
+<span class="text-slate-500"># → http://localhost:8787</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="reveal glass rounded-2xl overflow-hidden border-mint/30" style="border-color: rgba(52, 211, 153, 0.3);">
+          <div class="flex items-center gap-4 px-6 pt-5">
+            <span class="font-mono text-xs text-void bg-mint rounded-md px-2.5 py-1 font-bold">09</span>
+            <h3 class="text-white font-semibold">Ship to the edge 🚀</h3>
+          </div>
+          <div class="p-6 pt-4">
+            <div class="relative rounded-xl bg-black/50 border border-white/5 group">
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
+              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-600">$</span> <span class="text-slate-200">npm run deploy</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- optional: extra publish targets -->
+        <div class="reveal glass rounded-2xl overflow-hidden">
+          <div class="flex items-center gap-4 px-6 pt-5">
+            <span class="font-mono text-xs text-void bg-plasma rounded-md px-2.5 py-1 font-bold">++</span>
+            <h3 class="text-white font-semibold">Optional: fan out to more publish targets</h3>
+          </div>
+          <div class="p-6 pt-4">
+            <p class="text-sm text-slate-400 mb-3">Publishing defaults to the <code class="text-mint">d1</code> target. Add <code class="text-mint">r2</code> for static JSON snapshots, or bind a plugin Worker with <code class="text-plasma">publishTarget: true</code> in its manifest for anything else — IPFS, webhooks, search indexes.</p>
+            <div class="relative rounded-xl bg-black/50 border border-white/5 group">
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
+              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-600">$</span> <span class="text-slate-200">npx wrangler r2 bucket create worker-cms-published</span></code></pre>
+            </div>
+            <div class="relative rounded-xl bg-black/50 border border-white/5 group mt-3">
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
+              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-500"># wrangler.toml</span>
+<span class="text-plasma">PUBLISH_TARGETS</span> <span class="text-slate-500">=</span> <span class="text-mint">"d1,r2"</span></code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── CTA ───────────────────────── -->
+  <section class="relative py-24">
+    <div class="glow-orb w-[30rem] h-[30rem] bg-plasma bottom-0 left-1/2 -translate-x-1/2"></div>
+    <div class="relative max-w-3xl mx-auto px-5 sm:px-8 text-center">
+      <div class="reveal glass rounded-3xl px-8 py-14 sm:px-14">
+        <p class="font-mono text-sm text-neon mb-4">// ready when you are</p>
+        <h2 class="text-4xl sm:text-5xl font-bold text-white tracking-tight leading-tight">
+          Don't trust.<br/><span class="gradient-text">Verify it yourself.</span>
+        </h2>
+        <p class="mt-5 text-slate-400 text-lg">The live instance is running on the edge right now.</p>
+        <a href="https://cms.eventuai.com" target="_blank" rel="noopener"
+           class="neon-btn inline-block mt-9 px-10 py-4 rounded-xl bg-gradient-to-r from-neon/20 to-plasma/20 border border-neon/60 text-white font-bold font-mono text-lg">
+          Launch 0xCMS ↗
+        </a>
+        <p class="mt-4 font-mono text-xs text-slate-600">cms.eventuai.com</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── FOOTER ───────────────────────── -->
+  <footer class="border-t border-white/5 py-10">
+    <div class="max-w-7xl mx-auto px-5 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs text-slate-600">
+      <div class="flex items-center gap-2">
+        <span class="text-neon font-bold">0xCMS</span>
+        <span>— content management, edge-native.</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <a href="#features" class="hover:text-neon transition-colors">features</a>
+        <a href="#get-started" class="hover:text-neon transition-colors">docs</a>
+        <a href="https://cms.eventuai.com" target="_blank" rel="noopener" class="hover:text-neon transition-colors">app ↗</a>
+      </div>
+      <div>built on <span class="text-plasma">Cloudflare Workers</span> ⚡</div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+  <script src="webgl-bg.js"></script>
+</body>
+</html>
