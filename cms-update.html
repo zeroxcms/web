@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>0xCMS — Daily Update</title>
+  <meta name="description" content="Daily development log for 0xCMS — an edge-native content management system on Cloudflare Workers." />
+  <link rel="alternate" hreflang="en" href="cms-update.html" />
+  <link rel="alternate" hreflang="zh-HK" href="zh-hk/cms-update.html" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            void: '#05010f',
+            panel: '#0b0620',
+            neon: '#22d3ee',
+            plasma: '#a855f7',
+            mint: '#34d399',
+          },
+          fontFamily: {
+            mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+            sans: ['"Space Grotesk"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet" />
+  <style>
+    html, body {
+      overflow-x: hidden;
+    }
+
+    body { background-color: #05010f; }
+
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(168, 85, 247, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34, 211, 238, 0.07) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+    }
+
+    .glow-orb {
+      position: absolute;
+      border-radius: 9999px;
+      filter: blur(110px);
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    .gradient-text {
+      background: linear-gradient(100deg, #22d3ee 0%, #a855f7 50%, #34d399 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .glass {
+      background: rgba(15, 8, 36, 0.55);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(168, 85, 247, 0.18);
+    }
+
+    .glass-hover { transition: border-color .3s, transform .3s, box-shadow .3s; }
+    .glass-hover:hover {
+      border-color: rgba(34, 211, 238, 0.45);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px -12px rgba(34, 211, 238, 0.25);
+    }
+
+    .timeline-line {
+      background: linear-gradient(to bottom, rgba(34,211,238,0.5), rgba(168,85,247,0.5), rgba(52,211,153,0.2));
+    }
+  </style>
+</head>
+<body class="font-sans text-slate-200 antialiased relative overflow-x-hidden">
+
+  <!-- background -->
+  <div class="fixed inset-0 -z-10 overflow-hidden">
+    <div class="absolute inset-0 grid-bg"></div>
+    <div class="glow-orb w-[40rem] h-[40rem] bg-plasma -top-40 -left-40"></div>
+    <div class="glow-orb w-[36rem] h-[36rem] bg-neon top-1/3 -right-40"></div>
+  </div>
+
+  <!-- ───────────────────────── NAV ───────────────────────── -->
+  <header class="fixed top-0 inset-x-0 z-50">
+    <nav class="max-w-5xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between glass mt-3 rounded-xl">
+      <a href="index.html" class="flex items-center gap-2.5 group">
+        <span class="relative grid place-items-center w-9 h-9 rounded-lg bg-gradient-to-br from-neon/20 to-plasma/20 border border-plasma/40">
+          <span class="font-mono font-bold text-neon text-sm">0x</span>
+        </span>
+        <span class="font-mono font-bold text-lg text-white tracking-tight">0x<span class="gradient-text">CMS</span></span>
+      </a>
+      <div class="flex items-center gap-6 font-mono text-sm">
+        <a href="index.html" class="text-slate-400 hover:text-neon transition-colors hidden sm:inline">&larr; /home</a>
+        <a href="zh-hk/cms-update.html" hreflang="zh-HK" class="text-slate-400 hover:text-neon transition-colors">繁中</a>
+        <a href="https://cms.eventuai.com" target="_blank" rel="noopener"
+           class="px-4 py-2 rounded-lg bg-neon/10 border border-neon/50 text-neon font-semibold">Launch App ↗</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-5 sm:px-8 pt-32 pb-24">
+
+    <!-- header -->
+    <div class="mb-12">
+      <p class="font-mono text-sm text-neon mb-3">// dev log</p>
+      <h1 class="font-sans font-bold text-4xl sm:text-5xl text-white tracking-tight">
+        Daily <span class="gradient-text">Update</span>
+      </h1>
+      <p class="mt-4 text-slate-400 max-w-2xl">
+        What shipped to the 0xCMS Worker, straight from the commit log.
+      </p>
+    </div>
+
+    <!-- ───────────────────────── 2026-07-16 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;16</h2>
+        <span class="font-mono text-xs text-slate-500">3 commits &middot; batch publishing, duplicate-submit protection and dashboard navigation</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Added a scoped bulk-publish operation to the Plugin API, protected admin POST forms from accidental replay,
+        and made the configured CMS brand a direct link back to the admin dashboard.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">a30d577</code><span><span class="text-slate-200 font-medium">Plugin batch publish API</span> adds <code class="text-neon">POST /__cms/pages/publish</code> for up to 100 draft page IDs. It enforces plugin authentication and page-type scope, rejects invalid or duplicate IDs, returns per-item publish errors including partial target failures, and emits publish hooks through the existing pipeline.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">25288c2</code><span><span class="text-slate-200 font-medium">Single-use admin submit tokens</span> signs per-form <code class="text-neon">_cms_once</code> tokens and atomically claims them in D1, preventing duplicate POSTs from double-clicks, resubmits and retries while releasing a claim when downstream work fails. It also preserves <code class="text-neon">return_to</code> on publish and unpublish actions.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">229df8e</code><span><span class="text-slate-200 font-medium">Linked admin branding</span> makes the configured site title and icon in desktop and mobile admin navigation link directly to <code class="text-neon">/admin</code>.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-07-14 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;14</h2>
+        <span class="font-mono text-xs text-slate-500">13 commits &middot; Plugin API scale, unified type admin, import/export plugins, media and credits</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Made large Plugin API lookups safe within D1 bind limits, unified page/block type administration and plugin page creation,
+        and moved CSV tools into a dedicated import-export plugin. Also added a permission-controlled media content list with
+        page-reference links, kept Pages navigation stable for custom admin homes, and expanded plugin capabilities and credits.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">d1c302b</code><span><span class="text-slate-200 font-medium">Scalable Plugin API lookups</span> binds page IDs and slugs as JSON arrays through <code class="text-neon">json_each(?)</code>, so large <code class="text-neon">ids</code>/<code class="text-neon">slugs</code> lookups and <code class="text-neon">include_tags=1</code> lists stay below D1’s 100-parameter limit.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c5f2adc</code><span><span class="text-slate-200 font-medium">Unified type administration and creation</span> consolidates page-type and block-type CRUD into shared type-admin routes and views, while single and batch Plugin API page creation now use one validated flow for parent/ID resolution, limits, credits, writes and hooks.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">07a281c</code><span><span class="text-slate-200 font-medium">Import/export plugin foundation</span> moves built-in CSV tools into a dedicated plugin and expands the Plugin API with content metadata, tag ensuring and bulk lookup support for import/export workflows.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">5c8b636</code><span><span class="text-slate-200 font-medium">Dictionary build cleanup</span> removes the obsolete Chinese-character dictionary generation script, leaving the existing generated search data in place without an unused network-dependent build step.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c4d7b8d</code><span><span class="text-slate-200 font-medium">Media content list</span> adds the permission-controlled <code class="text-neon">/admin/settings/content</code> page, listing R2 media objects with metadata, cursor pagination, and links to the draft pages that reference each file.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">7aa8bad</code><span><span class="text-slate-200 font-medium">Stable Pages navigation</span> keeps the Pages sidebar entry available when a custom admin home is configured, so users can always return to the content list from the admin navigation.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">e6993f6</code><span><span class="text-slate-200 font-medium">Plugin taxonomy discovery</span> adds <code class="text-neon">contentTypes.taxonomies</code> to the plugin page-types screen, showing defined page types, taxonomies and delegated access in separate sections with links and test coverage.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">36a1e62</code><span><span class="text-slate-200 font-medium">Plugin-defined page types</span> exposes <code class="text-neon">contentTypes.blueprint</code> alongside delegated read/write scopes, so the admin clearly separates page types defined by a plugin from its requested access.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">3f662bd</code><span><span class="text-slate-200 font-medium">Generalized submission ingest</span> treats any live-only page as a submission mirror, adds a dedicated <code class="text-neon">submission</code> hook, and protects mirror history from publish and unpublish operations without relying on hard-coded page types.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">e6e8e1c</code><span><span class="text-slate-200 font-medium">Reliable plugin navigation</span> keeps plugin sidebar items active across deep routes and page-edit return flows, and scrolls the active item into view when the mobile menu opens.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">98d10e4</code><span><span class="text-slate-200 font-medium">Concurrent refresh grace</span> accepts recently rotated refresh tokens for a short grace window, preventing parallel admin requests from being incorrectly revoked while preserving expiry checks.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">a80c19c</code><span><span class="text-slate-200 font-medium">Optional live page status</span> adds <code class="text-neon">include_live_status=1</code> to <code class="text-neon">/pages</code> and <code class="text-neon">/pages/:id</code>, returning <code class="text-neon">isPublished</code> without extra requests.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">a5bad97</code><span><span class="text-slate-200 font-medium">Shared credit pool and transfers</span> adds a site-wide credit pool that can cover shortfalls, accept user donations and admin adjustments, support permissioned grants and user-to-user transfers, and report pool balances through the credit API.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-07-13 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;13</h2>
+        <span class="font-mono text-xs text-slate-500">3 commits &middot; bulk Plugin API writes, operational limits and publish projections</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Expanded plugin operations with transactional bulk page updates and per-second limits, and added owner-defined
+        publish-time lect projections so live content can be minimized consistently across all publishing targets.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6bff14a</code><span><span class="text-slate-200 font-medium">Publish-time lect projections</span> adds plugin-defined <code class="text-neon">contentTypes.publishLect</code> rules during snapshot builds, enforces blueprint ownership, and applies the matching draft projection to live-versus-draft comparisons so projected page types do not show false permanent drift.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">b7f6cb9</code><span><span class="text-slate-200 font-medium">Per-second plugin limits</span> adds the <code class="text-neon">per_second</code> operational limit scope, with optional <code class="text-neon">page_type</code>, updated normalization and admin messaging, and no CMS usage counting for that plugin-enforced limit.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">9c70291</code><span><span class="text-slate-200 font-medium">Bulk Plugin API page updates</span> introduces <code class="text-neon">PATCH /pages/batch</code> for transactional plugin page-lect updates with version history and per-item errors, preallocates page and version IDs to reduce D1 subrequests, and extends batch tests and duplicate slug-family handling.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-07-12 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;12</h2>
+        <span class="font-mono text-xs text-slate-500">5 commits &middot; auto-republish, shared field assets and restore cleanup</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Added plugin-declared auto-republish behavior for live plugin page types, made admin page fields more
+        reliable after client-side re-renders and plugin-view sanitization, and simplified legacy trash restore handling.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">9347cf0</code><span><span class="text-slate-200 font-medium">Auto-publish PR merge</span> merges the plugin page type auto-republish work from <code class="text-neon">auto-publish-gpt</code> into the main CMS history.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6640b8f</code><span><span class="text-slate-200 font-medium">Auto-republish plugin page types</span> adds plugin-declared <code class="text-neon">autoPublishTypes</code> so eligible live plugin-owned pages republish automatically on save, avoids duplicate update hooks in that path, updates flash messaging, and covers republish plus draft-only behavior in route tests.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">8f1995d</code><span><span class="text-slate-200 font-medium">Shared page-ref asset</span> moves the page reference combobox logic into <code class="text-neon">/assets/page-ref.js</code>, loads it from both layouts, removes the inline snippet script, and keeps editor actions visible with a sticky action row.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6a0009c</code><span><span class="text-slate-200 font-medium">Shared picture field asset</span> extracts picture preview and upload behavior into <code class="text-neon">views/assets/picture-field.js</code> so picture fields keep working after client-side rendering and sanitized plugin HTML.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">1da7d48</code><span><span class="text-slate-200 font-medium">Legacy restore snapshot cleanup</span> removes the old special-case restore path for trashed pages without preserved version history and updates the restore query helper comments to match current behavior.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-07-11 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;11</h2>
+        <span class="font-mono text-xs text-slate-500">1 commit &middot; tenant-aware plugin auth headers</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Strengthened secret-authenticated plugin requests by carrying a normalized tenant identifier through
+        admin proxying, edit views, hooks, publish targets, and background jobs.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">4012cd2</code><span><span class="text-slate-200 font-medium">Tenant-aware plugin auth headers</span> propagates <code class="text-neon">x-cms-tenant</code>, centralizes auth header setup with <code class="text-neon">pluginTenantId</code>, and uses constant-time plugin write-back secret checks while adding coverage for <code class="text-neon">CANONICAL_ORIGIN</code> tenant behavior.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-07-10 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;10</h2>
+        <span class="font-mono text-xs text-slate-500">2 commits &middot; plugin navigation labels and API errors</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Polished plugin-facing details by using plugin labels for single-item navigation entries and returning
+        clearer forbidden page type errors from the Plugin API.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">ca7b693</code><span><span class="text-slate-200 font-medium">Single-item plugin nav labels</span> uses each plugin's label when only one navigation item is registered, keeping admin sidebars easier to scan.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">db5ba6f</code><span><span class="text-slate-200 font-medium">Forbidden page type API errors</span> gives Plugin API callers more specific feedback when a page type is outside their allowed scope.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-07-08 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;08</h2>
+        <span class="font-mono text-xs text-slate-500">3 commits &middot; hook batching, field projection and pointer indexes</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Improved Plugin API performance and response shaping with batched plugin hooks, optional page field
+        projection, and indexed pointer filter queries.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">7b4955e</code><span><span class="text-slate-200 font-medium">Batched plugin hooks and field projection</span> reduces repeated hook work and lets Plugin API page responses include only requested fields.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">27b7f82</code><span><span class="text-slate-200 font-medium"><code class="text-neon">cms-api.ts</code> follow-up</span> tightens the Plugin API implementation after the field projection changes.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">69cc5ff</code><span><span class="text-slate-200 font-medium">Pointer filter indexes</span> adds D1 indexes and query updates so pointer-based filters are faster under advanced search and Plugin API usage.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-07-07 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;07</h2>
+        <span class="font-mono text-xs text-slate-500">13 commits &middot; bulk operations, validation, RSVP ingestion and Plugin API naming</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Expanded advanced search into a safer bulk operations surface with async admin jobs, batching,
+        lifecycle logging, and queue configuration. The same day also added page create validation,
+        RSVP submission ingestion, Plugin API naming cleanup, a mobile dropdown fix, and default-timezone
+        version timestamps.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">dff9ffb</code><span><span class="text-slate-200 font-medium">Page create ID validation</span> validates incoming IDs and parent references before creating pages through the Plugin API.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">17c87f8</code><span><span class="text-slate-200 font-medium">Guest import confirm action revert</span> removes the queued guest import confirmation path after review.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">2a9fc6d</code><span><span class="text-slate-200 font-medium">Queued guest import confirm action</span> originally routed guest import confirmation through the admin job queue.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">1d18f7e</code><span><span class="text-slate-200 font-medium">Bulk unpublish optimization</span> improves bulk unpublish handling across D1, R2, and Worker publish adapters while adding lifecycle logging.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">865de78</code><span><span class="text-slate-200 font-medium">Admin jobs queue for bulk operations</span> enables the Worker queue configuration used by long-running bulk actions.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">337b579</code><span><span class="text-slate-200 font-medium">All-scope bulk action fix</span> makes all-results bulk actions ignore visible row selections so the requested scope is applied correctly.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">4850329</code><span><span class="text-slate-200 font-medium">Batched advanced search bulk actions</span> chunks bulk work into smaller admin job batches for more predictable processing.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">a47960b</code><span><span class="text-slate-200 font-medium">Async bulk search operations</span> moves advanced search bulk actions onto admin jobs instead of doing all work during the request.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c046559</code><span><span class="text-slate-200 font-medium">Advanced search bulk actions</span> adds bulk controls, search utilities, admin rendering support, styles, Liquid view updates, and route tests.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">3622924</code><span><span class="text-slate-200 font-medium">RSVP submissions into draft pages</span> ingests incoming RSVP submissions into draft page records with supporting indexes, admin routing, and tests.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">5e6ee33</code><span><span class="text-slate-200 font-medium">Plugin API naming cleanup</span> renames remaining F1 references across routes and tests so the plugin-facing API language is consistent.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6d7c93a</code><span><span class="text-slate-200 font-medium">Plugin config dropdown overflow fix</span> keeps the configuration menu inside the mobile viewport.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">3bc97d4</code><span><span class="text-slate-200 font-medium">Default-timezone version timestamps</span> formats page version history using the configured timezone.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-07-06 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;06</h2>
+        <span class="font-mono text-xs text-slate-500">9 commits &middot; plugin search, scopes, credits &amp; action UI</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Expanded plugin-facing admin capabilities with advanced page search, wildcard page-type scopes,
+        custom update actions, user credit visibility, paginated credit history, and a cleaner plugin
+        action menu.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">4fd73f0</code><span><span class="text-slate-200 font-medium">Advanced plugin page search</span> gives plugins richer page lookup tools.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">b0c1c8d</code><span><span class="text-slate-200 font-medium">Users view refresh</span> updates <code class="text-neon">users.liquid</code> after the account and credit UI changes.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">32fd45b</code><span><span class="text-slate-200 font-medium">Custom version actions</span> allows page updates to record a more specific version action.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">d42f41f</code><span><span class="text-slate-200 font-medium">Wildcard page-type scopes</span> lets plugin permissions cover matching page-type families.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">27ef9c9</code><span><span class="text-slate-200 font-medium">Sidebar credit balance</span> shows the current user's credit balance in the admin sidebar.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">acab94f</code><span><span class="text-slate-200 font-medium">Paginated credit history</span> keeps profile credit logs manageable as usage grows.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">552c578</code><span><span class="text-slate-200 font-medium">Plugin management view update</span> refreshes <code class="text-neon">plugins-manage.liquid</code> after the action layout changes.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">f1a0014</code><span><span class="text-slate-200 font-medium">Plugin action layout refactor</span> reorganizes plugin management controls for clearer spacing and grouping.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">8f378f3</code><span><span class="text-slate-200 font-medium">Grouped plugin action dropdown</span> consolidates repeated plugin actions into a dropdown pattern.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-07-05 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;05</h2>
+        <span class="font-mono text-xs text-slate-500">4 commits &middot; plugin quotas, credit billing &amp; branding</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Added the first credit and quota controls around plugins: configurable quota limits, credit billing,
+        safer atomic credit updates, and a branded app icon on the login screen.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">846d0a6</code><span><span class="text-slate-200 font-medium">Atomic credit updates</span> uses <code class="text-neon">RETURNING</code> so credit changes can be applied and read back reliably.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6db3e38</code><span><span class="text-slate-200 font-medium">Credit billing system</span> introduces the billing foundation for credit-backed plugin usage.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">5ce3871</code><span><span class="text-slate-200 font-medium">Configurable plugin quotas</span> adds quota limits that can be tuned per deployment.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">bf29f50</code><span><span class="text-slate-200 font-medium">Branded login icon</span> uses the app icon on the login page for a more consistent entry point.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-07-04 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;04</h2>
+        <span class="font-mono text-xs text-slate-500">2 commits &middot; admin home, purge controls &amp; approved assets</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Added more operator control over the admin experience: the home screen can now be configured,
+        destructive purge paths are gated more deliberately, and approved plugin assets are exposed
+        inside plugin-rendered edit views.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">4f23d17</code><span><span class="text-slate-200 font-medium">Approved assets in edit views</span> exposes approved plugin assets while rendering plugin-owned edit experiences.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">b623e41</code><span><span class="text-slate-200 font-medium">Configurable admin home and purge gating</span> lets admins choose the home destination while tightening access around purge actions.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-07-03 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;03</h2>
+        <span class="font-mono text-xs text-slate-500">15 commits &middot; plugin create views, taxonomies, settings &amp; page history</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        A broad platform day for plugin-owned admin surfaces: create and read-only page views landed,
+        plugin taxonomies became first-class in admin, tags moved toward weighted taxonomy slugs,
+        system branding/sidebar settings arrived, and page version maintenance became safer.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">dd2745a</code><span><span class="text-slate-200 font-medium">Plugin create views and tag filtering</span> lets plugins own create forms while improving tag-based filters.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">b50543f</code><span><span class="text-slate-200 font-medium">Taxonomy slug migration and batch reorder</span> moves tags to <code class="text-neon">taxonomy_slug</code> and adds batch reordering.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">0295564</code><span><span class="text-slate-200 font-medium">Tag weights and config taxonomy options</span> adds ordering and configuration options for taxonomy-backed tags.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">8f77447</code><span><span class="text-slate-200 font-medium">Branding and sidebar system settings</span> exposes admin configuration for the site brand and sidebar behavior.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">3f31690</code><span><span class="text-slate-200 font-medium">Admin sidebar menu settings</span> adds management for sidebar menu configuration.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">812dd33</code><span><span class="text-slate-200 font-medium">Plugin-defined taxonomies</span> supports plugin-provided taxonomy definitions in admin.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">9789741</code><span><span class="text-slate-200 font-medium">Page version deletion and cleanup</span> adds maintenance tools for historical page versions.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">2115037</code><span><span class="text-slate-200 font-medium">Draft ID preservation</span> keeps draft IDs stable when publishing content to D1.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">01bce75</code><span><span class="text-slate-200 font-medium">Editor sync and feature coverage</span> adds tests around editor sync behavior and feature flows.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">81407d6</code><span><span class="text-slate-200 font-medium">Plugin-rendered read-only views</span> lets plugins render read-only page views.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">ad4dcda</code><span><span class="text-slate-200 font-medium">Type admin and editor helpers</span> refactors shared helpers for type administration and editor flows.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">e2b5c51</code><span><span class="text-slate-200 font-medium">Plugin page-type access approvals</span> adds an approval path for plugin access to page types.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">8468f50</code><span><span class="text-slate-200 font-medium">Plugin asset revision queries</span> fixes revision query handling for plugin assets.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">fcad6b2</code><span><span class="text-slate-200 font-medium">Immutable plugin view assets</span> serves plugin view files with immutable caching.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">723b6a7</code><span><span class="text-slate-200 font-medium">Admin session keepalive</span> keeps sessions alive while working in admin pages.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-07-02 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;02</h2>
+        <span class="font-mono text-xs text-slate-500">7 commits &middot; plugin assets, cache-busting &amp; mobile admin</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Tightened plugin-admin access, expanded the approved asset pipeline, added revision-aware cache
+        busting for admin and plugin assets, and improved the mobile admin header.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">20f2594</code><span><span class="text-slate-200 font-medium">Auto-hiding mobile admin header</span> improves mobile navigation behavior.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">d51fe1d</code><span><span class="text-slate-200 font-medium">Plugin worker revision cache-busting</span> uses plugin worker revisions to bust asset caches.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">4b7e1ca</code><span><span class="text-slate-200 font-medium">Revisioned admin assets</span> adds revision handling for admin assets and plugin caching.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">4ccdaa6</code><span><span class="text-slate-200 font-medium">Plugin camera and WASM opt-in</span> lets plugins opt into camera and WASM security allowances.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">1e86047</code><span><span class="text-slate-200 font-medium">Asset approval integrity</span> adds integrity hashes to the plugin asset approval UI.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">495584d</code><span><span class="text-slate-200 font-medium">Approved asset serving</span> serves plugin assets after approval.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c5691ee</code><span><span class="text-slate-200 font-medium">Manifest-gated plugin admin</span> checks plugin admin access against manifest permissions.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-07-01 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;01</h2>
+        <span class="font-mono text-xs text-slate-500">5 commits &middot; live pages &amp; multilingual search</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Improved the editorial dashboard for live content: live-only pages can be pulled back into drafts,
+        listings query live pages directly, and search now understands Chinese variant text.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c0b498e</code><span><span class="text-slate-200 font-medium">Pull-to-draft</span> adds a draft recovery flow for live-only pages.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">19e1788</code><span><span class="text-slate-200 font-medium">Live-page pagination</span> queries live pages directly with paged results.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">ca6f9ca</code><span><span class="text-slate-200 font-medium">Chinese variant search</span> expands page search across character variants.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">0c47a03</code><span><span class="text-slate-200 font-medium">Generated character maps</span> replaces <code class="text-neon">opencc-js</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">8cd04b5</code><span><span class="text-slate-200 font-medium">Dashboard filters</span> adds status filters and Chinese search.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-30 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/90">2026&#8209;06&#8209;30</h2>
+        <span class="font-mono text-xs text-slate-500">6 commits &middot; plugin jobs, fields &amp; trash restore</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Rounded out plugin-driven admin workflows with queueable jobs, richer form-field rendering,
+        fixed pagefield snippet resolution, and filtered bulk restore for trash.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">ff6905c</code><span><span class="text-slate-200 font-medium">Client render update</span> refreshes the client-rendered admin layer.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">2de6739</code><span><span class="text-slate-200 font-medium"><code class="text-neon">leading-relaxed</code> utility</span> adds the text utility to admin styles.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6c6007d</code><span><span class="text-slate-200 font-medium">Pagefield snippet paths</span> fixes view-base resolution.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">2330c63</code><span><span class="text-slate-200 font-medium">Form field templates</span> adds templates and required-field support.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">12ed982</code><span><span class="text-slate-200 font-medium">Queueable plugin jobs</span> lets plugin actions schedule admin jobs.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">1d116d1</code><span><span class="text-slate-200 font-medium">Filtered bulk restore</span> restores trash items scoped by filters.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-29 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/90">2026&#8209;06&#8209;29</h2>
+        <span class="font-mono text-xs text-slate-500">16 commits &middot; table tooling, privacy &amp; bulk operations</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        A broad admin polish day: collection-aware bulk actions, page duplication, table filtering,
+        privacy masking, color labels, and several missing utility classes for the CMS shell.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">803c050</code><span><span class="text-slate-200 font-medium">Pointer-based collection selection</span> improves bulk-operation targeting.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">8a4ad16</code><span><span class="text-slate-200 font-medium">Bulk page duplication</span> adds the duplication API endpoint.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">a3a95c7</code><span><span class="text-slate-200 font-medium">Color picker and delete confirms</span> refines label interactions and prompts.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">39e5c03</code><span><span class="text-slate-200 font-medium">Null <code class="text-neon">page_id</code> coercion</span> fixes CMS API handling.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">9e2ed54</code><span><span class="text-slate-200 font-medium">Nested event session test</span> adds regression coverage.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">466d709</code><span><span class="text-slate-200 font-medium">Duplicate icon asset</span> adds the icon used by duplication actions.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">a6dffdd</code><span><span class="text-slate-200 font-medium">Color tag picker</span> introduces the color-label picker feature.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c659093</code><span><span class="text-slate-200 font-medium">Name masking</span> handles middle-dot names and Latin tokens more cleanly.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">7f32612</code><span><span class="text-slate-200 font-medium">Privacy table masking</span> refines table-level masking.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">112a58e</code><span><span class="text-slate-200 font-medium">PII field masking</span> adds masking for sensitive table fields.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">f0cda7f</code><span><span class="text-slate-200 font-medium">Auth provider loading</span> shows feedback while selecting a provider.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">bb0fba5</code><span><span class="text-slate-200 font-medium">iOS form zoom fix</span> prevents mobile zoom on admin forms.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">f553189</code><span><span class="text-slate-200 font-medium">Table filters</span> adds the table-filter asset and integration.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">5e37123</code><span><span class="text-slate-200 font-medium">Width and truncation utilities</span> fills missing layout classes.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">0a62e00</code><span><span class="text-slate-200 font-medium">Spacing and layout utilities</span> expands admin utility coverage.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">2b72cde</code><span><span class="text-slate-200 font-medium">Tailwind utility coverage</span> adds missing classes used by views.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-28 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/90">2026&#8209;06&#8209;28</h2>
+        <span class="font-mono text-xs text-slate-500">9 commits &middot; profile, users &amp; OAuth</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Added the admin profile surface and rounded out account-linking controls, Microsoft OAuth, user
+        deletion safeguards, and identity-provider visibility.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">0e5d83c</code><span><span class="text-slate-200 font-medium">Scoped client template cache</span> isolates cached templates by view base path.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">62b7a8b</code><span><span class="text-slate-200 font-medium">Identity providers in user list</span> shows linked providers in admin users.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">de926c1</code><span><span class="text-slate-200 font-medium">Apple provider disabled</span> removes Apple from enabled providers.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">51114af</code><span><span class="text-slate-200 font-medium">User deletion safeguards</span> adds protected admin user deletion.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">831da67</code><span><span class="text-slate-200 font-medium">Microsoft OAuth config</span> enables Microsoft OAuth settings.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c4c239e</code><span><span class="text-slate-200 font-medium">Admin form actions</span> polishes form footer actions.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">94c0abd</code><span><span class="text-slate-200 font-medium">OAuth disconnect</span> adds profile support for disconnecting providers.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">e30596f</code><span><span class="text-slate-200 font-medium">Explicit account linking</span> requires <code class="text-neon">link=1</code> for OAuth linking.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">bb19ae0</code><span><span class="text-slate-200 font-medium">Admin profile page</span> adds the profile view.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-27 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/90">2026&#8209;06&#8209;27</h2>
+        <span class="font-mono text-xs text-slate-500">7 commits &middot; OAuth, actions &amp; plugin hardening</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Focused on authentication breadth and plugin-admin hardening, including multi-provider identity
+        linking, unified icon actions, sanitized plugin HTML, and iframe isolation experiments.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">0db7f95</code><span><span class="text-slate-200 font-medium">Microsoft and Apple OAuth</span> adds support for additional providers.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">426e4c4</code><span><span class="text-slate-200 font-medium">Multi-provider identity linking</span> links multiple OAuth identities to one account.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">075cc02</code><span><span class="text-slate-200 font-medium">Unified action buttons</span> standardizes admin action buttons with icon variants.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">3da2ca1</code><span><span class="text-slate-200 font-medium">Security and client views</span> hardens plugin client-rendered views.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c3a2d14</code><span><span class="text-slate-200 font-medium">Plugin HTML sanitization</span> prevents XSS in plugin-admin HTML.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">0b10a9f</code><span><span class="text-slate-200 font-medium">Iframe isolation revert</span> reverts the sandboxed iframe isolation change.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">221ca0f</code><span><span class="text-slate-200 font-medium">Sandboxed iframe isolation</span> initially isolates plugin admin views.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-26 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;26</h2>
+        <span class="font-mono text-xs text-slate-500">16 commits &middot; client rendering, permissions &amp; responsive admin</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Shifted core views toward client rendering, externalized the SVG sprite, strengthened plugin
+        permissions, and improved cache behavior, mobile navigation, table layout, and page-store utilities.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6cd16f7</code><span><span class="text-slate-200 font-medium">Admin API and plugin access</span> hardens permission checks.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">0fefa60</code><span><span class="text-slate-200 font-medium">Dependency cleanup</span> removes <code class="text-neon">emmet</code> and <code class="text-neon">liquidjs</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">13de3fa</code><span><span class="text-slate-200 font-medium">Security helpers and media routes</span> refactors shared code.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">aee9bef</code><span><span class="text-slate-200 font-medium">Page-store utilities</span> extracts helpers and adds <code class="text-neon">withLiveStatus</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">639488c</code><span><span class="text-slate-200 font-medium">Empty pointer values</span> preserves empty pointers instead of deleting them.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">5529676</code><span><span class="text-slate-200 font-medium">Dashboard table positioning</span> adds relative positioning.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">f7843cd</code><span><span class="text-slate-200 font-medium">Plugin-defined permissions</span> exposes plugin permissions in roles/admin.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">0c63fb3</code><span><span class="text-slate-200 font-medium">Mobile sidebar nav</span> updates the sidebar to a full-page menu.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">b450994</code><span><span class="text-slate-200 font-medium">View revision cache-busting</span> adds revision-aware view caching.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">088468d</code><span><span class="text-slate-200 font-medium">Loading and cache headers</span> fixes placeholders and cache headers.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">eca65ec</code><span><span class="text-slate-200 font-medium">Reactive reorder rows</span> keeps reorderable rows reactive to DOM changes.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">bf81d6a</code><span><span class="text-slate-200 font-medium">Default layout update</span> refreshes <code class="text-neon">default.liquid</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">580574c</code><span><span class="text-slate-200 font-medium">Client-rendered views</span> switches admin views and adds proxies.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">8428fdf</code><span><span class="text-slate-200 font-medium">0xCMS site title</span> renames the site title.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">62b430b</code><span><span class="text-slate-200 font-medium">External SVG sprite</span> serves icons through a sprite.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">7029cab</code><span><span class="text-slate-200 font-medium">Table container styles</span> standardizes table containers and widths.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-25 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;25</h2>
+        <span class="font-mono text-xs text-slate-500">16 commits &middot; batching, trash &amp; UI</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Massive progress on administrative efficiency: introduced batch operations for page weights and 
+        deletions, overhauled the trash system with pagination and granular purging, and added a 
+        comprehensive light theme for the admin UI.
+      </p>
+
+      <div class="relative pl-8">
+        <div class="absolute left-2 top-2 bottom-2 w-px timeline-line"></div>
+
+        <article class="relative mb-6">
+          <span aria-hidden="true" class="absolute -left-[26px] top-1.5 w-3 h-3 rounded-full bg-mint border-2 border-void">&nbsp;</span>
+          <div class="glass glass-hover rounded-xl p-5">
+            <div class="flex items-center gap-3 mb-2 flex-wrap">
+              <code class="font-mono text-xs text-plasma">16fc14f</code>
+              <h3 class="font-semibold text-white">Bulk Page Weight Updates</h3>
+            </div>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              Added <code class="text-neon">POST /admin/pages/batch-weight</code> to apply bulk weight updates using 
+              DB batch commits. Includes strict input validation and optimized prepared statements to 
+              minimize round-trips.
+            </p>
+          </div>
+        </article>
+
+        <article class="relative mb-6">
+          <span aria-hidden="true" class="absolute -left-[26px] top-1.5 w-3 h-3 rounded-full bg-neon border-2 border-void">&nbsp;</span>
+          <div class="glass glass-hover rounded-xl p-5">
+            <div class="flex items-center gap-3 mb-2 flex-wrap">
+              <code class="font-mono text-xs text-plasma">69927c5</code>
+              <h3 class="font-semibold text-white">Drag-and-Drop Row Reordering</h3>
+            </div>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              Injected client-side logic to enable drag-and-drop reordering for any table with <code class="text-neon">data-reorder</code>. 
+              Automatically posts new ordering sequences to the backend via fetch.
+            </p>
+          </div>
+        </article>
+
+        <article class="relative mb-6">
+          <span aria-hidden="true" class="absolute -left-[26px] top-1.5 w-3 h-3 rounded-full bg-plasma border-2 border-void">&nbsp;</span>
+          <div class="glass glass-hover rounded-xl p-5">
+            <div class="flex items-center gap-3 mb-2 flex-wrap">
+              <code class="font-mono text-xs text-plasma">09ec980</code>
+              <h3 class="font-semibold text-white">Enhanced Trash Management</h3>
+            </div>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              The trash view now supports type-based filtering, item counts, and granular purge options 
+              (e.g., purge only items trashed in the last hour).
+            </p>
+          </div>
+        </article>
+
+        <article class="relative mb-6">
+          <span aria-hidden="true" class="absolute -left-[26px] top-1.5 w-3 h-3 rounded-full bg-mint border-2 border-void">&nbsp;</span>
+          <div class="glass glass-hover rounded-xl p-5">
+            <div class="flex items-center gap-3 mb-2 flex-wrap">
+              <code class="font-mono text-xs text-plasma">f1c154c</code>
+              <h3 class="font-semibold text-white">Batch Soft-Delete for Pages</h3>
+            </div>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              Introduced <code class="text-neon">DELETE /pages/batch</code> to move multiple draft pages to trash 
+              in a single D1 transaction, significantly reducing API overhead for bulk cleanup.
+            </p>
+          </div>
+        </article>
+
+        <article class="relative mb-6">
+          <span aria-hidden="true" class="absolute -left-[26px] top-1.5 w-3 h-3 rounded-full bg-neon border-2 border-void">&nbsp;</span>
+          <div class="glass glass-hover rounded-xl p-5">
+            <div class="flex items-center gap-3 mb-2 flex-wrap">
+              <code class="font-mono text-xs text-plasma">ca5b6c8</code>
+              <h3 class="font-semibold text-white">Admin Light Theme</h3>
+            </div>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              Added a full light theme stylesheet using CSS custom properties, ensuring a high-contrast, 
+              conventional Tailwind aesthetic as an alternative to the default dark mode.
+            </p>
+          </div>
+        </article>
+
+        <article class="relative">
+          <span aria-hidden="true" class="absolute -left-[26px] top-1.5 w-3 h-3 rounded-full bg-slate-500 border-2 border-void">&nbsp;</span>
+          <div class="glass glass-hover rounded-xl p-5">
+            <div class="flex items-center gap-3 mb-2 flex-wrap">
+              <code class="font-mono text-xs text-plasma">44b43cc</code>
+              <h3 class="font-semibold text-white">Batch Page Creation</h3>
+            </div>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              Optimized page creation with bulk D1 inserts and unique slug allocation within a single batch, 
+              capped at 100 items per request for stability.
+            </p>
+          </div>
+        </article>
+      </div>
+
+      <div class="mt-6 glass rounded-xl p-5">
+        <h3 class="font-semibold text-white mb-4">Additional 2026&#8209;06&#8209;25 commits</h3>
+        <ul class="space-y-3 text-sm text-slate-400">
+          <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">915f714</code><span>Add batch page-weight endpoint and tests.</span></li>
+          <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">991d77c</code><span>Update <code class="text-neon">admin.css</code>.</span></li>
+          <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">57ae3f3</code><span>Add pagination and empty-all action to trash.</span></li>
+          <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">1a17419</code><span>Update <code class="text-neon">cms-api.ts</code>.</span></li>
+          <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">623a270</code><span>Update <code class="text-neon">cms-api.ts</code>.</span></li>
+          <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6b740d8</code><span>Preserve plugin redirects and clean empty pointers.</span></li>
+          <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">589aefd</code><span>Add <code class="text-neon">blockNamesFor</code> and boolean field snippet.</span></li>
+          <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">13a08fe</code><span>Update <code class="text-neon">routes.test.ts</code>.</span></li>
+          <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">d34d691</code><span>Show plugin block types and settings nav.</span></li>
+          <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">a6dcd7f</code><span>Show Lect JSON diff in editor previews.</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-24 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;24</h2>
+        <span class="font-mono text-xs text-slate-500">7 commits · plugin editing &amp; APIs</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Earlier in the cycle: a native-editor escape hatch, opt-in same-origin framing for plugins,
+        a richer pages API, and plugin edit-view support.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">73c2f62</code><span><span class="text-slate-200 font-medium">?native=1 editor bypass</span> — documented the query flag and added tests confirming the built-in editor is served and the flag survives form actions and redirects.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">8afddb2</code><span><span class="text-slate-200 font-medium">Native-editor escape hatch</span> — <code>?native=1</code> / <code>?editor=cms</code> forces the built-in CMS editor even when a plugin would render the edit view; <code class="text-neon">preferNativeEditor</code> + <code class="text-neon">withNativeFlag</code> thread it through action URLs.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">e02ec18</code><span><span class="text-slate-200 font-medium">datetime.liquid</span> — new page-field snippet.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">4ae4f64</code><span><span class="text-slate-200 font-medium">/api/pages/:type</span> enhanced with search and id lookup.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6393900</code><span><span class="text-slate-200 font-medium">Opt-in same-origin framing</span> for plugins.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">4d7c8f2</code><span><span class="text-slate-200 font-medium">Plugin edit view support</span> added.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">93505b6</code><span>Preserve editor <code>return_to</code> across pages.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-23 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;23</h2>
+        <span class="font-mono text-xs text-slate-500">16 commits &middot; plugins, schemas &amp; trash history</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Turned the plugin system into a managed platform with DB-backed registration, per-plugin secrets,
+        plugin-contributed page types, navigation, read APIs, write-back support, and richer timezone/schema foundations.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">95b6eaf</code><span>Extend schema: timezones, trash versions, plugins.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">91b4f86</code><span>Add page timezone support.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">e9502c9</code><span>Set defaultLanguage to <code class="text-neon">'mis'</code> and add locales.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">034ca0c</code><span>Add basic switch pagefield snippet.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">779b8a4</code><span>Remove dump test; conditionally render table header.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">85128a3</code><span>Add test that dumps admin HTML.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">b5ecfe0</code><span>Support plugin readTypes and show plugin names.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">db35601</code><span>Preserve original parent for trashed pages.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">078a0d9</code><span>Decode percent-encoded plugin titles.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">21dd862</code><span>Update <code class="text-neon">plugins.ts</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">2c13f49</code><span>Add per-plugin secret and rotation support.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">3dcccd2</code><span>Add plugin write-back API and trash support.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6caef21</code><span>Support plugin nav in admin layout.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">ca73d5f</code><span>Support plugin-contributed page types in admin.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c4816ca</code><span>Add <code class="text-neon">PLUGIN_SECRET</code> to <code class="text-neon">.dev.vars.example</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6405277</code><span>Add DB-backed plugin registry and admin UI.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-22 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;22</h2>
+        <span class="font-mono text-xs text-slate-500">14 commits &middot; permissions, layout helpers &amp; editor scope</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Added role and user administration, made admin UI permission-aware, reduced route rendering boilerplate,
+        and refined editor language scope, taxonomy fallback, and structured editor controls.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">3241a8e</code><span>Replace inline weight form with read-only view.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">438cd24</code><span>Create <code class="text-neon">basic.liquid</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">a69351d</code><span>Redirect to edit with language; scope editor form.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">3189919</code><span>Update CMS config and regenerate admin CSS.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">15330d3</code><span>Update <code class="text-neon">routes.test.ts</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6a2474b</code><span>Remove revert button and update taxonomy fallback.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6417922</code><span>Merge pull request #5 from LionRockJS/refactor/reduce-boilerplate.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">71290fe</code><span>Add <code class="text-neon">renderPage</code> helper to cut route render boilerplate.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">1c1ff3f</code><span>Add <code class="text-neon">adminLayout</code> helper to cut template boilerplate.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c93a50e</code><span>Make admin UI permission-aware.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">9153280</code><span>Add separate <code class="text-neon">tag:write</code> permission.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">54925e8</code><span>Add input bg class in editor and regenerate admin CSS.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">0f23bc7</code><span>Compact weight inputs in structured editor.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">20261cc</code><span>Add roles/users admin and permission system.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-21 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;21</h2>
+        <span class="font-mono text-xs text-slate-500">5 commits &middot; database-defined content model</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Moved more content configuration into the database with page types, block types, renamed taxonomies,
+        unique draft slugs, cache fixes, and regenerated admin utility styles.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">8a2a407</code><span>Add DB-backed block types and admin UI.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c602735</code><span>Rename tag_types and tag_lists to taxonomies.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">2d53bfd</code><span>Ensure unique draft slugs; cache and lect fixes.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">d01f7b0</code><span>Add database-defined page types and admin UI.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">ad31713</code><span>Regenerate <code class="text-neon">admin.css</code> Tailwind utilities.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-20 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;20</h2>
+        <span class="font-mono text-xs text-slate-500">2 commits &middot; publish adapter merge</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Brought the publish-adapter branch into the mainline and added example plugin publish targets with tests.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">001de3c</code><span>Merge branch <code class="text-neon">publish-adapters</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c1d96b7</code><span>Add example publish plugins and tests.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-12 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;12</h2>
+        <span class="font-mono text-xs text-slate-500">2 commits &middot; pluggable publish targets</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Added the publish-target architecture, including D1, R2, and plugin fan-out paths.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">ab15ce8</code><span>Merge pull request #4 from LionRockJS/publish-adapters.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">1d350ad</code><span>Add pluggable publish targets: d1, r2, plugin.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-11 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;11</h2>
+        <span class="font-mono text-xs text-slate-500">2 commits &middot; editor metadata &amp; presence cleanup</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Improved editor metadata display, safer lect parsing, and simplified presence storage behavior.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">dccc8af</code><span>Display modifier name and safely parse lect.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">12c93da</code><span>Remove presence table; add avatar fallback.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-10 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;10</h2>
+        <span class="font-mono text-xs text-slate-500">11 commits &middot; security hardening</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        A security-heavy day: stricter CSP and JWT claims, fail-closed CSRF, hardened cookies, upload protections,
+        rate limiting, registration controls, audit logging, and plugin proxy safeguards.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">e7641d9</code><span>Add presence handling to PageSync DO and routes.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">0e47957</code><span>Merge pull request #3 from LionRockJS/security-hardening.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">78e2891</code><span>Enforce sensitive cache headers and plugin secret.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">d941293</code><span>Resolve P3: capability-based RBAC and plugin shared-origin mitigation.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">9f3b9c0</code><span>Merge pull request #2 from LionRockJS/security-hardening.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">1fc713b</code><span>Session hygiene, registration allowlist, audit logging.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">80b3cd9</code><span>Plugin proxy header allowlist, CSV filename encoding, presence validation.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">7f5397d</code><span>Fail-closed CSRF checks, <code class="text-neon">__Host-</code> auth cookies, POST-only logout.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">8b20692</code><span>Strict CSP with local Tailwind build and per-request nonces; JWT issuer/audience.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">7601059</code><span>Add IP-keyed rate limiting to auth and upload endpoints.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">10336e1</code><span>Harden media upload and serving against stored XSS.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-09 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;09</h2>
+        <span class="font-mono text-xs text-slate-500">9 commits &middot; CRDT collaboration, presence &amp; plugins</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Added the collaborative editing foundation with PageSync, CRDT operations, WebSocket attachment,
+        presence tracking, multi-user tests, plugin integration, and modular admin route organization.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">3b27d05</code><span>Sanitize WebSocket fields and omit avatar relay.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">99c3d7e</code><span>Add PageSync multi-user tests; relax editor.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">2d4cdfc</code><span>CRDT: per-user ops, reset and save handling.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">151951c</code><span>Improve CRDT sync, WebSocket attachment, and presence interval.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">e4c9b20</code><span>Update <code class="text-neon">editor.liquid</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">83e1fe0</code><span>Add PageSync DO and editor CRDT sync.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6642664</code><span>Add presence tracking: DB, API, UI.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">bf3850c</code><span>Add plugin system and integrate plugins.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">bfb92b5</code><span>Refactor admin into modular routes and utilities.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-08 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;08</h2>
+        <span class="font-mono text-xs text-slate-500">1 commit &middot; published DB isolation</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Split published content into its own D1 database so public readers can be isolated from draft/admin data.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">0dd60f3</code><span>Split published content into separate D1 DB.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-07 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;07</h2>
+        <span class="font-mono text-xs text-slate-500">6 commits &middot; CSV import/export &amp; dashboard scale</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Expanded operational content management with localized CSV import/export, draft exports,
+        lect-derived fields, dashboard pagination, import shortcuts, and batched lookups.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">31f03de</code><span>Add bulk CSV import and batched lookups.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">27c134c</code><span>Add CSV import links to admin dashboard.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6e4d3b0</code><span>Add pagination to admin dashboard.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">b8a1f02</code><span>Include lect-derived fields in CSV exports.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">dde2e0d</code><span>Add CSV export for draft pages.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">e10bb9a</code><span>Support localized CSV import/export.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-06 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;06</h2>
+        <span class="font-mono text-xs text-slate-500">6 commits &middot; CSV workflows &amp; editor references</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Added CSV import modes, preview/confirmation flow, import/export foundations, parent-page APIs,
+        dynamic editor comboboxes, and advanced-search blueprint options.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">85a7752</code><span>Add CSV import modes and UI options.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">561c2ed</code><span>Add CSV import preview and confirmation flow.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">43ae6c3</code><span>Update <code class="text-neon">dashboard.liquid</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">34c308b</code><span>Add parent-pages API and dynamic editor combobox.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">da29d3c</code><span>Add CSV import/export and parent combobox.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">7e5d1fa</code><span>Add blueprint path options for advanced search.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-05 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;05</h2>
+        <span class="font-mono text-xs text-slate-500">5 commits &middot; advanced search</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Built the advanced-search surface with multi-type criteria, locked page-type routes,
+        dashboard search, and redirect behavior from admin searches.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">603d6b5</code><span>Redirect admin searches to advanced-search.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">2fb2cbb</code><span>Add dashboard search and lock advanced-search type.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6feacca</code><span>Use path param for advanced-search page type.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">55cbb73</code><span>Advanced search: multi-type and dynamic criteria.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">1ae0fb7</code><span>Add advanced search feature and UI tweaks.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-04 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;04</h2>
+        <span class="font-mono text-xs text-slate-500">11 commits &middot; media, structured editor &amp; initial schema</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Added private R2 media uploads, Cloudflare image previews, error response cleanup, draft metadata,
+        initial schema consolidation, item weights, and structured-editor improvements.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">4093cbb</code><span>Serve thumbnails via <code class="text-neon">/media-preview</code> with resize.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">d8e97c8</code><span>Add Cloudflare image preview and upload guidance.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">aed7522</code><span>Add <code class="text-neon">X-CMS-Error</code> header to error responses.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">b9a137c</code><span>Return JSON for forbidden admin/api requests.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">7f1fa8b</code><span>Return JSON for admin upload auth errors.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">64f27b4</code><span>Add private R2 media uploads and tests.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">b3906f2</code><span>Add draft metadata to created/merged lects.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">0e8101b</code><span>Consolidate migrations into initial schema.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">02444c6</code><span>Add page creator and editors metadata.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">f1c58e1</code><span>Add implicit item weights and sort items.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">90231e6</code><span>Structured editor: block attrs, tags, live-diff.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-03 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;03</h2>
+        <span class="font-mono text-xs text-slate-500">23 commits &middot; admin views, lect migration &amp; mobile UI</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        A large admin build-out: responsive templates, Liquid/JSON view experiments, editor and tag parity,
+        lect migration, version-table unification, CSP/referer fixes, and package updates.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">9257a97</code><span>Respect secure cookies; UI/accessibility tweaks.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c09dbb3</code><span>Add package-lock and update package.json.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">d1e1f00</code><span>Delete package-lock.json.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">642c768</code><span>Update package-lock.json.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6e7d5cf</code><span>Update <code class="text-neon">dashboard.liquid</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">fbcb905</code><span>Update <code class="text-neon">dashboard.liquid</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">64fd421</code><span>Make admin UI responsive and mobile-friendly.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">9ca0b0b</code><span>Switch from Liquid to JSON template views.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">71091a5</code><span>Add JSON template rendering and Emmet integration.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">932cbf7</code><span>Load Liquid templates via VIEWS fetcher.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">413ee79</code><span>Use LiquidJS templates for admin views.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">767988b</code><span>Update <code class="text-neon">index.ts</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">40b0b40</code><span>Refactor tag admin routes to use page components.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">a7d6277</code><span>Add admin templates and editor improvements.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">9eee329</code><span>Update <code class="text-neon">auth.ts</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">248e1cc</code><span>Unify page version tables into <code class="text-neon">page_versions</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">67ada5b</code><span>Migrate <code class="text-neon">original</code> structured content to <code class="text-neon">lect</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">93a9dd5</code><span>Update <code class="text-neon">editor.ts</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">b0d1e10</code><span>Show default-language value as placeholder.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">ddc57af</code><span>Add favicon route; fix editor URL and CSP.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">74d1da1</code><span>Update <code class="text-neon">editor.ts</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">fb45883</code><span>Add page-type datalist and referer checks.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">f775ce1</code><span>Add admin CMS parity: originals, tags, media.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-02 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;02</h2>
+        <span class="font-mono text-xs text-slate-500">4 commits &middot; database bindings &amp; roles</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Consolidated content database bindings, supported comma-separated roles, and expanded origin checks.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">f6d4794</code><span>Support allowed origins in security checks.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">0f66f41</code><span>Consolidate D1 databases into single DB binding.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">fc9db3d</code><span>Unify content DB into single <code class="text-neon">CONTENT_DB</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">5937543</code><span>Support comma-separated user roles and utilities.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-01 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;01</h2>
+        <span class="font-mono text-xs text-slate-500">1 commit &middot; OAuth and headers</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Added multi-provider OAuth support and security headers.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">dc62ba2</code><span>Support multi-provider OAuth and security headers.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-05-30 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;05&#8209;30</h2>
+        <span class="font-mono text-xs text-slate-500">9 commits &middot; auth, trash &amp; dependencies</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Established the early auth/data split with AUTH_DB, trash workflow, Eventuai OAuth integration,
+        dependency upgrades, config updates, and the repository root commit.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">25adf0a</code><span>Update <code class="text-neon">wrangler.toml</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">4fd286c</code><span>Update <code class="text-neon">login.ts</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">ca123a2</code><span>Add Eventuai OAuth provider and role sync.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">565df36</code><span>Upgrade esbuild, TypeScript, Wrangler, and Hono.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">5993d38</code><span>Add cms-trash DB and update AUTH_DB id.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">372e5a5</code><span>Add AUTH_DB and move auth data off LIVE.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">93b3909</code><span>Add trash soft-delete workflow.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c415a99</code><span>Merge pull request #1 from LionRockJS/copilot/create-database-migration-for-content.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">409f105</code><span>Initial commit.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-05-29 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;05&#8209;29</h2>
+        <span class="font-mono text-xs text-slate-500">2 commits &middot; first CMS plan and Worker implementation</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Started the project with the initial implementation plan and the first Cloudflare Worker CMS scaffold:
+        OAuth 2.1, dual JWTs, and live/draft database workflow.
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">505b671</code><span>Add Cloudflare Worker CMS with OAuth 2.1, dual JWT, and LIVE/DRAFT database workflow.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">f53cdcb</code><span>Initial plan.</span></li>
+      </ul>
+    </section>
+
+    <!-- footer note -->
+    <div class="glass rounded-xl p-5 text-center">
+        <p class="font-mono text-xs text-slate-500">
+          Generated from the 0xCMS Worker commit log &middot; last updated 2026&#8209;07&#8209;14
+        </p>
+
+    </div>
+
+  </main>
+
+  <footer class="border-t border-plasma/10 py-8">
+    <div class="max-w-4xl mx-auto px-5 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs text-slate-500">
+      <span>0x<span class="gradient-text">CMS</span> — edge-native CMS on Cloudflare Workers</span>
+      <a href="index.html" class="hover:text-neon transition-colors">&larr; back to home</a>
+    </div>
+  </footer>
+
+</body>
+</html>

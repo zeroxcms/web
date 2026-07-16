@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="zh-HK" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>0xCMS — 開發更新</title>
+  <meta name="description" content="0xCMS 開發更新紀錄 — 建於 Cloudflare Workers 的邊緣原生內容管理系統。" />
+  <link rel="alternate" hreflang="en" href="../cms-update.html" />
+  <link rel="alternate" hreflang="zh-HK" href="cms-update.html" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            void: '#05010f',
+            panel: '#0b0620',
+            neon: '#22d3ee',
+            plasma: '#a855f7',
+            mint: '#34d399',
+          },
+          fontFamily: {
+            mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+            sans: ['"Space Grotesk"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet" />
+  <style>
+    html, body {
+      overflow-x: hidden;
+    }
+
+    body { background-color: #05010f; }
+
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(168, 85, 247, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34, 211, 238, 0.07) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+    }
+
+    .glow-orb {
+      position: absolute;
+      border-radius: 9999px;
+      filter: blur(110px);
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    .gradient-text {
+      background: linear-gradient(100deg, #22d3ee 0%, #a855f7 50%, #34d399 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .glass {
+      background: rgba(15, 8, 36, 0.55);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(168, 85, 247, 0.18);
+    }
+
+    .glass-hover { transition: border-color .3s, transform .3s, box-shadow .3s; }
+    .glass-hover:hover {
+      border-color: rgba(34, 211, 238, 0.45);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px -12px rgba(34, 211, 238, 0.25);
+    }
+
+    .timeline-line {
+      background: linear-gradient(to bottom, rgba(34,211,238,0.5), rgba(168,85,247,0.5), rgba(52,211,153,0.2));
+    }
+  </style>
+</head>
+<body class="font-sans text-slate-200 antialiased relative overflow-x-hidden">
+
+  <!-- background -->
+  <div class="fixed inset-0 -z-10 overflow-hidden">
+    <div class="absolute inset-0 grid-bg"></div>
+    <div class="glow-orb w-[40rem] h-[40rem] bg-plasma -top-40 -left-40"></div>
+    <div class="glow-orb w-[36rem] h-[36rem] bg-neon top-1/3 -right-40"></div>
+  </div>
+
+  <!-- ───────────────────────── NAV ───────────────────────── -->
+  <header class="fixed top-0 inset-x-0 z-50">
+    <nav class="max-w-5xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between glass mt-3 rounded-xl">
+      <a href="index.html" class="flex items-center gap-2.5 group">
+        <span class="relative grid place-items-center w-9 h-9 rounded-lg bg-gradient-to-br from-neon/20 to-plasma/20 border border-plasma/40">
+          <span class="font-mono font-bold text-neon text-sm">0x</span>
+        </span>
+        <span class="font-mono font-bold text-lg text-white tracking-tight">0x<span class="gradient-text">CMS</span></span>
+      </a>
+      <div class="flex items-center gap-6 font-mono text-sm">
+        <a href="index.html" class="text-slate-400 hover:text-neon transition-colors hidden sm:inline">&larr; /首頁</a>
+        <a href="../cms-update.html" hreflang="en" class="text-slate-400 hover:text-neon transition-colors">English</a>
+        <a href="https://cms.eventuai.com" target="_blank" rel="noopener"
+           class="px-4 py-2 rounded-lg bg-neon/10 border border-neon/50 text-neon font-semibold">開啟 App ↗</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-5 sm:px-8 pt-32 pb-24">
+
+    <!-- header -->
+    <div class="mb-12">
+      <p class="font-mono text-sm text-neon mb-3">// 開發日誌</p>
+      <h1 class="font-sans font-bold text-4xl sm:text-5xl text-white tracking-tight">
+        開發<span class="gradient-text">更新</span>
+      </h1>
+      <p class="mt-4 text-slate-400 max-w-2xl">
+        根據 0xCMS Worker commit log 整理的最新改動。
+      </p>
+    </div>
+
+    <!-- ───────────────────────── 2026-07-16 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;16</h2>
+        <span class="font-mono text-xs text-slate-500">3 個 commits &middot; 批量發佈、防重複提交與 dashboard 導覽</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        為 Plugin API 加入受範圍限制的批量發佈操作，保護 admin POST form 免受意外重播，
+        並讓已設定的 CMS 品牌可直接連回 admin dashboard。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">a30d577</code><span><span class="text-slate-200 font-medium">Plugin 批量發佈 API</span> 加入 <code class="text-neon">POST /__cms/pages/publish</code>，可一次處理最多 100 個 draft page ID。此 API 強制 plugin authentication 及 page-type scope，拒絕無效或重複 ID，逐項回傳包括 partial target failure 在內的 publish error，並透過現有 pipeline 觸發 publish hooks。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">25288c2</code><span><span class="text-slate-200 font-medium">單次使用的 admin submit token</span> 為每個 form 簽署 <code class="text-neon">_cms_once</code> token，並在 D1 作原子 claim，防止 double-click、resubmit 和 retry 導致重複 POST；下游工作失敗時會釋放 claim 以便重試。同時保留 publish 及 unpublish 動作的 <code class="text-neon">return_to</code>。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">229df8e</code><span><span class="text-slate-200 font-medium">可連結的 admin 品牌</span> 讓 desktop 及 mobile admin navigation 內已設定的 site title 和 icon 可直接連到 <code class="text-neon">/admin</code>。</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-07-14 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;14</h2>
+        <span class="font-mono text-xs text-slate-500">13 個 commits &middot; Plugin API 擴展、統一類型後台、匯入／匯出插件、媒體與 credits</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        令大型 Plugin API lookup 可安全避開 D1 bind limit，統一 page／block type administration 與 plugin page creation，
+        並把 CSV tools 移至專用 import-export plugin；同時加入受權限控制的 media content list、穩定 Pages navigation，及擴充 plugin capabilities 與 credits。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">d1c302b</code><span><span class="text-slate-200 font-medium">可擴展的 Plugin API lookup</span> 透過 <code class="text-neon">json_each(?)</code> 以 JSON array 綁定 page IDs 及 slugs，令大型 <code class="text-neon">ids</code>/<code class="text-neon">slugs</code> lookup 與 <code class="text-neon">include_tags=1</code> list 不會超出 D1 的 100-parameter limit。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c5f2adc</code><span><span class="text-slate-200 font-medium">統一類型後台與建立流程</span> 把 page-type 及 block-type CRUD 整合至共用 type-admin routes 和 views；單筆及批量 Plugin API page creation 現共用同一套驗證流程，處理 parent/ID resolution、limits、credits、writes 及 hooks。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">07a281c</code><span><span class="text-slate-200 font-medium">Import/export plugin 基礎</span> 把內建 CSV tools 移至專用 plugin，並為 import/export workflow 擴充 Plugin API 的 content metadata、tag ensuring 及 bulk lookup 支援。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">5c8b636</code><span><span class="text-slate-200 font-medium">Dictionary build 清理</span> 移除已過時的 Chinese-character dictionary generation script；保留現有生成的 search data，毋須再維持未使用且依賴網絡的 build step。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c4d7b8d</code><span><span class="text-slate-200 font-medium">Media content list</span> 加入受權限控制的 <code class="text-neon">/admin/settings/content</code> 頁面，列出 R2 media objects 的 metadata、支援 cursor pagination，並連結至每個檔案被哪些 draft pages 引用。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">7aa8bad</code><span><span class="text-slate-200 font-medium">穩定的 Pages navigation</span> 設定 custom admin home 時仍保留 Pages sidebar entry，讓用戶可隨時從 admin navigation 返回 content list。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">e6993f6</code><span><span class="text-slate-200 font-medium">Plugin taxonomy 探索</span> 把 <code class="text-neon">contentTypes.taxonomies</code> 加到 plugin page-types 畫面，分開顯示已定義 page types、taxonomies 及 delegated access，並加入 links 和測試覆蓋。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">36a1e62</code><span><span class="text-slate-200 font-medium">Plugin-defined page types</span> 在 delegated read/write scopes 旁顯示 <code class="text-neon">contentTypes.blueprint</code>，讓 admin 清楚區分 plugin 定義的 page types 與其申請的 access。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">3f662bd</code><span><span class="text-slate-200 font-medium">Submission ingest 一般化</span> 把任何 live-only page 視為 submission mirror，加入專用 <code class="text-neon">submission</code> hook，並按 mirror history 阻止 publish/unpublish，而毋須依賴 hard-coded page types。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">e6e8e1c</code><span><span class="text-slate-200 font-medium">可靠的 plugin navigation</span> 令 plugin sidebar items 在 deep routes 及 page-edit return flows 中保持 active，並在 mobile menu 打開時把 active item 滾動至畫面內。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">98d10e4</code><span><span class="text-slate-200 font-medium">並行 refresh grace</span> 為剛 rotation 的 refresh tokens 提供短暫 grace window，避免並行 admin requests 被錯誤撤銷，同時保留 expiry checks。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">a80c19c</code><span><span class="text-slate-200 font-medium">可選 live page status</span> 為 <code class="text-neon">/pages</code> 及 <code class="text-neon">/pages/:id</code> 加入 <code class="text-neon">include_live_status=1</code>，毋須額外 requests 即可回傳 <code class="text-neon">isPublished</code>。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">a5bad97</code><span><span class="text-slate-200 font-medium">Shared credit pool 及 transfers</span> 加入 site-wide credit pool，可補足不足的 credits、接受用戶捐贈及 admin 調整、支援 permissioned grants 和 user-to-user transfers，並透過 credit API 回報 pool balances。</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-07-13 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;13</h2>
+        <span class="font-mono text-xs text-slate-500">3 commits &middot; Plugin API 批量寫入、operational limits 及 publish projections</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        擴充 plugin operations，支援 transactional bulk page updates 及 per-second limits；同時加入由 owner 定義的
+        publish-time lect projections，令 live content 可在發佈到所有 targets 前一致地精簡。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6bff14a</code><span><span class="text-slate-200 font-medium">Publish-time lect projections</span> 在 snapshot build 期間加入 plugin-defined <code class="text-neon">contentTypes.publishLect</code> rules、強制 blueprint ownership，並將相同的 draft projection 套用於 live-versus-draft comparisons，避免 projected page types 顯示錯誤的永久 drift。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">b7f6cb9</code><span><span class="text-slate-200 font-medium">Per-second plugin limits</span> 加入 <code class="text-neon">per_second</code> operational limit scope，容許省略 <code class="text-neon">page_type</code>，更新 normalization 及 admin messaging，而此 plugin-enforced limit 不會計入 CMS usage。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">9c70291</code><span><span class="text-slate-200 font-medium">Bulk Plugin API page updates</span> 加入 <code class="text-neon">PATCH /pages/batch</code>，讓 plugins 以 transaction 更新多個 page lect，同時保留 version history 及 per-item errors；預先分配 page 與 version IDs 以減少 D1 subrequests，並擴充 batch tests 及 duplicate slug-family handling。</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-07-12 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;12</h2>
+        <span class="font-mono text-xs text-slate-500">5 commits &middot; auto-republish、shared field assets 及 restore cleanup</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        加入 plugin-declared auto-republish behavior，令已 live 的 plugin page types 可在儲存後自動重新發布；
+        同時把 inline field behavior 移到 shared assets，令 admin page fields 在 client-side re-renders
+        及 plugin-view sanitization 後更穩定，並簡化 legacy trash restore handling。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">9347cf0</code><span><span class="text-slate-200 font-medium">Auto-publish PR merge</span> 把 <code class="text-neon">auto-publish-gpt</code> 分支的 plugin page type auto-republish work 合併到主要 CMS history。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6640b8f</code><span><span class="text-slate-200 font-medium">Auto-republish plugin page types</span> 加入 plugin-declared <code class="text-neon">autoPublishTypes</code>，讓符合資格且已 live 的 plugin-owned pages 在儲存後自動重新發布，避免該 path 觸發重複 update hooks，更新 flash messaging，並以 route tests 覆蓋 republish 及 draft-only behavior。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">8f1995d</code><span><span class="text-slate-200 font-medium">Shared page-ref asset</span> 把 page reference combobox logic 移到 <code class="text-neon">/assets/page-ref.js</code>，由兩個 layouts 載入，移除 snippet 內的 inline script，並以 sticky action row 令 editor actions 保持可見。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6a0009c</code><span><span class="text-slate-200 font-medium">Shared picture field asset</span> 把 picture preview 及 upload behavior 抽出到 <code class="text-neon">views/assets/picture-field.js</code>，令 picture fields 在 client-side rendering 及 sanitized plugin HTML 後仍可正常運作。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">1da7d48</code><span><span class="text-slate-200 font-medium">Legacy restore snapshot cleanup</span> 移除舊有 special-case restore path，不再為沒有 preserved version history 的 trashed pages 建立額外 snapshot，並更新 restore query helper comments 以反映現時行為。</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-07-11 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;11</h2>
+        <span class="font-mono text-xs text-slate-500">1 commit &middot; tenant-aware plugin auth headers</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        加強 secret-authenticated plugin requests：把標準化 tenant identifier 帶到 admin proxying、
+        edit views、hooks、publish targets 及 background jobs。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">4012cd2</code><span><span class="text-slate-200 font-medium">Tenant-aware plugin auth headers</span> 傳遞 <code class="text-neon">x-cms-tenant</code>，以 <code class="text-neon">pluginTenantId</code> 集中處理 auth header setup，並改用 constant-time plugin write-back secret checks，同時加入 <code class="text-neon">CANONICAL_ORIGIN</code> tenant 行為的測試覆蓋。</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-07-10 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;10</h2>
+        <span class="font-mono text-xs text-slate-500">2 commits &middot; plugin navigation labels 及 API errors</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        打磨 plugin-facing 細節：single-item navigation entries 會使用 plugin labels，
+        而 Plugin API 在禁止使用的 page type 場景會回傳更清晰的錯誤。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">ca7b693</code><span><span class="text-slate-200 font-medium">Single-item plugin nav labels</span> 當 plugin 只註冊一個 navigation item 時使用該 plugin 的 label，令 admin sidebar 更容易掃讀。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">db5ba6f</code><span><span class="text-slate-200 font-medium">Forbidden page type API errors</span> 當 page type 超出允許 scope 時，為 Plugin API callers 提供更具體的錯誤訊息。</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-07-08 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;08</h2>
+        <span class="font-mono text-xs text-slate-500">3 commits &middot; hook batching、field projection 及 pointer indexes</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        透過 batched plugin hooks、可選的 page field projection，以及 indexed pointer filter queries，
+        改善 Plugin API 的效能及 response shaping。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">7b4955e</code><span><span class="text-slate-200 font-medium">Batched plugin hooks 及 field projection</span> 減少重複 hook work，並讓 Plugin API page responses 只包含 requested fields。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">27b7f82</code><span><span class="text-slate-200 font-medium"><code class="text-neon">cms-api.ts</code> follow-up</span> 在 field projection 改動後收緊 Plugin API implementation。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">69cc5ff</code><span><span class="text-slate-200 font-medium">Pointer filter indexes</span> 加入 D1 indexes 及 query updates，令 advanced search 及 Plugin API 使用的 pointer-based filters 更快。</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-07-07 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;07</h2>
+        <span class="font-mono text-xs text-slate-500">13 commits &middot; bulk operations、validation、RSVP ingest 及 Plugin API 命名</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        把 advanced search 擴展成較安全的 bulk operations 介面，加入 async admin jobs、batching、
+        lifecycle logging 及 queue configuration。同日亦加入 page create validation、RSVP submission ingestion、
+        Plugin API 命名整理、mobile dropdown 修正，以及 default-timezone version timestamps。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">dff9ffb</code><span><span class="text-slate-200 font-medium">Page create ID validation</span> 在透過 Plugin API 建立 pages 前，先驗證 incoming IDs 及 parent references。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">17c87f8</code><span><span class="text-slate-200 font-medium">Guest import confirm action revert</span> 經 review 後移除 queued guest import confirmation path。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">2a9fc6d</code><span><span class="text-slate-200 font-medium">Queued guest import confirm action</span> 原本把 guest import confirmation 轉到 admin job queue 處理。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">1d18f7e</code><span><span class="text-slate-200 font-medium">Bulk unpublish optimization</span> 改善 D1、R2 及 Worker publish adapters 的 bulk unpublish handling，並加入 lifecycle logging。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">865de78</code><span><span class="text-slate-200 font-medium">Admin jobs queue for bulk operations</span> 啟用長時間 bulk actions 需要的 Worker queue configuration。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">337b579</code><span><span class="text-slate-200 font-medium">All-scope bulk action fix</span> 令 all-results bulk actions 忽略 visible row selections，確保正確套用 requested scope。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">4850329</code><span><span class="text-slate-200 font-medium">Batched advanced search bulk actions</span> 把 bulk work 切成較細的 admin job batches，令處理更可預期。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">a47960b</code><span><span class="text-slate-200 font-medium">Async bulk search operations</span> 把 advanced search bulk actions 改由 admin jobs 執行，不再於 request 期間完成所有工作。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c046559</code><span><span class="text-slate-200 font-medium">Advanced search bulk actions</span> 加入 bulk controls、search utilities、admin rendering support、styles、Liquid view updates 及 route tests。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">3622924</code><span><span class="text-slate-200 font-medium">RSVP submissions 轉為 draft pages</span> 把收到的 RSVP submissions ingest 成 draft page records，並加入相關 indexes、admin routing 及 tests。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">5e6ee33</code><span><span class="text-slate-200 font-medium">Plugin API 命名整理</span> 在 routes 及 tests 中把剩餘 F1 references 改為 Plugin API，令 plugin-facing API 用語一致。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6d7c93a</code><span><span class="text-slate-200 font-medium">Plugin config dropdown overflow 修正</span> 令設定選單在 mobile viewport 內保持貼合。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">3bc97d4</code><span><span class="text-slate-200 font-medium">Default-timezone version timestamps</span> 以設定時區格式化 page version history。</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-07-06 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;06</h2>
+        <span class="font-mono text-xs text-slate-500">9 commits &middot; plugin search、scopes、credits 及 action UI</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        擴展 plugin-facing admin 能力：加入 advanced page search、wildcard page-type scopes、
+        custom update actions、user credit visibility、分頁 credit history，以及更清晰的 plugin action menu。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">4fd73f0</code><span><span class="text-slate-200 font-medium">Advanced plugin page search</span> 為插件提供更豐富的 page lookup 工具。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">b0c1c8d</code><span><span class="text-slate-200 font-medium">Users view 更新</span> 在 account 及 credit UI 改動後更新 <code class="text-neon">users.liquid</code>。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">32fd45b</code><span><span class="text-slate-200 font-medium">Custom version actions</span> 讓 page updates 記錄更精準的 version action。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">d42f41f</code><span><span class="text-slate-200 font-medium">Wildcard page-type scopes</span> 讓 plugin permissions 可覆蓋匹配的 page-type family。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">27ef9c9</code><span><span class="text-slate-200 font-medium">Sidebar credit balance</span> 在 admin sidebar 顯示目前用戶的 credit balance。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">acab94f</code><span><span class="text-slate-200 font-medium">分頁 credit history</span> 令 profile credit logs 在 usage 增長後仍容易瀏覽。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">552c578</code><span><span class="text-slate-200 font-medium">Plugin management view 更新</span> 在 action layout 改動後刷新 <code class="text-neon">plugins-manage.liquid</code>。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">f1a0014</code><span><span class="text-slate-200 font-medium">Plugin action layout 重構</span> 重新整理插件管理 controls 的 spacing 及 grouping。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">8f378f3</code><span><span class="text-slate-200 font-medium">Grouped plugin action dropdown</span> 把重複的插件操作整合到 dropdown pattern。</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-07-05 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;05</h2>
+        <span class="font-mono text-xs text-slate-500">4 commits &middot; 插件 quota、credit billing 及品牌</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        為插件加入第一層 credit 及 quota control：可配置的 quota limits、credit billing、較安全的原子 credit updates，
+        以及登入頁的品牌 app icon。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">846d0a6</code><span><span class="text-slate-200 font-medium">原子 credit updates</span> 使用 <code class="text-neon">RETURNING</code>，令 credit 變更可可靠地套用並讀回。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6db3e38</code><span><span class="text-slate-200 font-medium">Credit billing system</span> 加入 credit-backed plugin usage 的 billing 基礎。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">5ce3871</code><span><span class="text-slate-200 font-medium">Configurable plugin quotas</span> 加入可按 deployment 調整的 quota limits。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">bf29f50</code><span><span class="text-slate-200 font-medium">Branded login icon</span> 在登入頁使用 app icon，令入口體驗更一致。</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-07-04 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;04</h2>
+        <span class="font-mono text-xs text-slate-500">2 commits &middot; admin home、purge controls 及已批准資產</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        加強後台操作控制：admin home 現可配置，破壞性 purge paths 加入更明確 gating，
+        而已批准的 plugin assets 亦可在 plugin-rendered edit views 中使用。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">4f23d17</code><span><span class="text-slate-200 font-medium">Edit views 使用已批准資產</span> 在 plugin-owned edit experiences 中 expose 已批准的 plugin assets。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">b623e41</code><span><span class="text-slate-200 font-medium">Configurable admin home 及 purge gating</span> 讓 admins 選擇 home destination，同時收緊 purge actions 的存取。</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-07-03 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;03</h2>
+        <span class="font-mono text-xs text-slate-500">15 commits &middot; plugin create views、taxonomies、settings 及 page history</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Plugin-owned admin surfaces 大幅推進：create 及 read-only page views 落地，
+        plugin taxonomies 成為後台一等功能，tags 轉向 weighted taxonomy slugs，
+        system branding/sidebar settings 加入，page version maintenance 亦更安全。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">dd2745a</code><span><span class="text-slate-200 font-medium">Plugin create views 及 tag filtering</span> 讓插件接管 create forms，並改善 tag-based filters。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">b50543f</code><span><span class="text-slate-200 font-medium">Taxonomy slug migration 及 batch reorder</span> 把 tags 移到 <code class="text-neon">taxonomy_slug</code>，並加入 batch reordering。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">0295564</code><span><span class="text-slate-200 font-medium">Tag weights 及 config taxonomy options</span> 為 taxonomy-backed tags 加入排序及設定選項。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">8f77447</code><span><span class="text-slate-200 font-medium">Branding 及 sidebar system settings</span> 開放後台設定 site brand 及 sidebar behavior。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">3f31690</code><span><span class="text-slate-200 font-medium">Admin sidebar menu settings</span> 加入 sidebar menu configuration 管理。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">812dd33</code><span><span class="text-slate-200 font-medium">Plugin-defined taxonomies</span> 在後台支援 plugin-provided taxonomy definitions。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">9789741</code><span><span class="text-slate-200 font-medium">Page version deletion 及 cleanup</span> 加入 historical page versions 的 maintenance tools。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">2115037</code><span><span class="text-slate-200 font-medium">保留 draft IDs</span> 發佈到 D1 時保持 draft IDs 穩定。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">01bce75</code><span><span class="text-slate-200 font-medium">Editor sync 及 feature coverage</span> 加入 editor sync 行為及 feature flows 的測試。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">81407d6</code><span><span class="text-slate-200 font-medium">Plugin-rendered read-only views</span> 讓插件 render read-only page views。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">ad4dcda</code><span><span class="text-slate-200 font-medium">Type admin 及 editor helpers</span> 重構 type administration 及 editor flows 的 shared helpers。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">e2b5c51</code><span><span class="text-slate-200 font-medium">Plugin page-type access approvals</span> 為插件存取 page types 加入 approval path。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">8468f50</code><span><span class="text-slate-200 font-medium">Plugin asset revision queries</span> 修正 plugin assets 的 revision query handling。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">fcad6b2</code><span><span class="text-slate-200 font-medium">Immutable plugin view assets</span> 以 immutable caching 提供 plugin view files。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">723b6a7</code><span><span class="text-slate-200 font-medium">Admin session keepalive</span> 在後台頁面工作時保持 session alive。</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-07-02 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;02</h2>
+        <span class="font-mono text-xs text-slate-500">7 commits &middot; 插件資產、cache-busting 及 mobile admin</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        收緊 plugin-admin 存取權，擴展已批准資產 pipeline，為 admin 及 plugin assets 加入
+        revision-aware cache busting，並改善 mobile admin header。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">20f2594</code><span><span class="text-slate-200 font-medium">Auto-hiding mobile admin header</span> 改善 mobile navigation 行為。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">d51fe1d</code><span><span class="text-slate-200 font-medium">Plugin worker revision cache-busting</span> 使用 plugin worker revisions 來 bust asset caches。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">4b7e1ca</code><span><span class="text-slate-200 font-medium">Revisioned admin assets</span> 為 admin assets 及 plugin caching 加入 revision handling。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">4ccdaa6</code><span><span class="text-slate-200 font-medium">Plugin camera 及 WASM opt-in</span> 讓插件 opt into camera 及 WASM security allowances。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">1e86047</code><span><span class="text-slate-200 font-medium">資產審批 integrity</span> 在插件資產審批 UI 加入 integrity hash。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">495584d</code><span><span class="text-slate-200 font-medium">已批准資產 serving</span> 資產獲批後可被插件提供。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c5691ee</code><span><span class="text-slate-200 font-medium">以 manifest 限制 plugin admin</span> 根據 manifest permissions 檢查 plugin admin 存取。</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-07-01 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white">2026&#8209;07&#8209;01</h2>
+        <span class="font-mono text-xs text-slate-500">5 commits &middot; live pages 及多語搜尋</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        改善 live content 的編輯 dashboard：live-only pages 可拉回 draft，列表直接查詢 live pages，搜尋亦理解中文異體字。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c0b498e</code><span><span class="text-slate-200 font-medium">拉回草稿</span> 為 live-only pages 加入 draft recovery flow。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">19e1788</code><span><span class="text-slate-200 font-medium">Live-page 分頁</span> 直接查詢 live pages 並回傳分頁結果。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">ca6f9ca</code><span><span class="text-slate-200 font-medium">中文異體搜尋</span> 把頁面搜尋擴展到中文異體字。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">0c47a03</code><span><span class="text-slate-200 font-medium">產生式字元 mapping</span> 取代 <code class="text-neon">opencc-js</code>。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">8cd04b5</code><span><span class="text-slate-200 font-medium">Dashboard 篩選</span> 加入狀態篩選及中文搜尋。</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-30 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/90">2026&#8209;06&#8209;30</h2>
+        <span class="font-mono text-xs text-slate-500">6 commits &middot; 插件 jobs、欄位及 trash restore</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        完善插件驅動的後台 workflow：queueable jobs、更完整的 form-field rendering、修正 pagefield snippet resolution，並為 trash 加入 filtered bulk restore。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">ff6905c</code><span><span class="text-slate-200 font-medium">Client render 更新</span> 更新 client-rendered 後台層。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">2de6739</code><span><span class="text-slate-200 font-medium"><code class="text-neon">leading-relaxed</code> utility</span> 在後台樣式加入文字 utility。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6c6007d</code><span><span class="text-slate-200 font-medium">Pagefield snippet 路徑</span> 修正 view-base resolution。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">2330c63</code><span><span class="text-slate-200 font-medium">Form field templates</span> 加入 templates 及 required-field 支援。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">12ed982</code><span><span class="text-slate-200 font-medium">可排隊 plugin jobs</span> 讓 plugin actions 可排程 admin jobs。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">1d116d1</code><span><span class="text-slate-200 font-medium">Filtered bulk restore</span> 按篩選條件 restore trash items。</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-29 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/90">2026&#8209;06&#8209;29</h2>
+        <span class="font-mono text-xs text-slate-500">16 commits &middot; 表格工具、私隱及批量操作</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        後台大幅打磨的一天：collection-aware bulk actions、page duplication、table filtering、privacy masking、color labels，以及補回 CMS shell 所需的 utility classes。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">803c050</code><span><span class="text-slate-200 font-medium">Pointer-based collection selection</span> 改善 bulk operation 的目標選取。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">8a4ad16</code><span><span class="text-slate-200 font-medium">批量頁面複製</span> 加入 duplication API endpoint。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">a3a95c7</code><span><span class="text-slate-200 font-medium">色彩 picker 及刪除確認</span> 改善 label 互動及提示。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">39e5c03</code><span><span class="text-slate-200 font-medium">Null <code class="text-neon">page_id</code> coercion</span> 修正 CMS API 處理。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">9e2ed54</code><span><span class="text-slate-200 font-medium">Nested event session 測試</span> 加入 regression coverage。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">466d709</code><span><span class="text-slate-200 font-medium">複製圖示資產</span> 加入 duplication actions 使用的圖示。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">a6dffdd</code><span><span class="text-slate-200 font-medium">Color tag picker</span> 加入 color-label picker 功能。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c659093</code><span><span class="text-slate-200 font-medium">姓名 masking</span> 更乾淨地處理 middle-dot names 及 Latin tokens。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">7f32612</code><span><span class="text-slate-200 font-medium">私隱表格 masking</span> 改善 table-level masking。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">112a58e</code><span><span class="text-slate-200 font-medium">PII 欄位 masking</span> 為敏感表格欄位加入 masking。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">f0cda7f</code><span><span class="text-slate-200 font-medium">Auth provider 載入狀態</span> 選擇 provider 時顯示 feedback。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">bb0fba5</code><span><span class="text-slate-200 font-medium">iOS form zoom 修正</span> 避免後台表單在手機上觸發 zoom。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">f553189</code><span><span class="text-slate-200 font-medium">Table filters</span> 加入 table-filter asset 及整合。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">5e37123</code><span><span class="text-slate-200 font-medium">寬度及截斷 utilities</span> 補回缺少的 layout classes。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">0a62e00</code><span><span class="text-slate-200 font-medium">Spacing 及 layout utilities</span> 擴大後台 utility 覆蓋。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">2b72cde</code><span><span class="text-slate-200 font-medium">Tailwind utility 覆蓋</span> 加入 views 使用但缺少的 classes。</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-28 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/90">2026&#8209;06&#8209;28</h2>
+        <span class="font-mono text-xs text-slate-500">9 commits &middot; Profile、users 及 OAuth</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        加入 admin profile 介面，並完善 account-linking controls、Microsoft OAuth、user deletion safeguards 及 identity-provider visibility。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">0e5d83c</code><span><span class="text-slate-200 font-medium">Scoped client template cache</span> 按 view base path 隔離 cached templates。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">62b7a8b</code><span><span class="text-slate-200 font-medium">User list 顯示 identity providers</span> 在 admin users 顯示已連結 providers。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">de926c1</code><span><span class="text-slate-200 font-medium">停用 Apple provider</span> 從 enabled providers 移除 Apple。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">51114af</code><span><span class="text-slate-200 font-medium">User deletion safeguards</span> 加入受保護的 admin user deletion。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">831da67</code><span><span class="text-slate-200 font-medium">Microsoft OAuth config</span> 啟用 Microsoft OAuth 設定。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c4c239e</code><span><span class="text-slate-200 font-medium">Admin form actions</span> 打磨 form footer actions。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">94c0abd</code><span><span class="text-slate-200 font-medium">OAuth disconnect</span> 在 profile 加入 disconnect providers 支援。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">e30596f</code><span><span class="text-slate-200 font-medium">明確 account linking</span> OAuth linking 必須使用 <code class="text-neon">link=1</code>。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">bb19ae0</code><span><span class="text-slate-200 font-medium">Admin profile page</span> 加入 profile view。</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-27 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/90">2026&#8209;06&#8209;27</h2>
+        <span class="font-mono text-xs text-slate-500">7 commits &middot; OAuth、actions 及插件加固</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        集中擴展 authentication 及加固 plugin-admin，包括 multi-provider identity linking、統一 icon actions、清理 plugin HTML，以及 iframe isolation 實驗。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">0db7f95</code><span><span class="text-slate-200 font-medium">Microsoft 及 Apple OAuth</span> 加入更多 providers 支援。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">426e4c4</code><span><span class="text-slate-200 font-medium">Multi-provider identity linking</span> 把多個 OAuth identities 連到同一帳戶。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">075cc02</code><span><span class="text-slate-200 font-medium">統一 action buttons</span> 以 icon variants 標準化 admin action buttons。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">3da2ca1</code><span><span class="text-slate-200 font-medium">Security 及 client views</span> 加固 plugin client-rendered views。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c3a2d14</code><span><span class="text-slate-200 font-medium">Plugin HTML sanitization</span> 避免 plugin-admin HTML 出現 XSS。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">0b10a9f</code><span><span class="text-slate-200 font-medium">Iframe isolation revert</span> 回復 sandboxed iframe isolation 改動。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">221ca0f</code><span><span class="text-slate-200 font-medium">Sandboxed iframe isolation</span> 初步以 sandboxed iframe 隔離 plugin admin views。</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-26 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;26</h2>
+        <span class="font-mono text-xs text-slate-500">16 commits &middot; client rendering、permissions 及 responsive admin</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        把核心 views 轉向 client rendering，外置 SVG sprite，加強 plugin permissions，並改善 cache behavior、mobile navigation、table layout 及 page-store utilities。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6cd16f7</code><span><span class="text-slate-200 font-medium">Admin API 及 plugin access</span> 加固 permission checks。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">0fefa60</code><span><span class="text-slate-200 font-medium">Dependency cleanup</span> removes <code class="text-neon">emmet</code> and <code class="text-neon">liquidjs</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">13de3fa</code><span><span class="text-slate-200 font-medium">Security helpers 及 media routes</span> 重構 shared code。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">aee9bef</code><span><span class="text-slate-200 font-medium">Page-store utilities</span> 抽出 helpers 並加入 <code class="text-neon">withLiveStatus</code>。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">639488c</code><span><span class="text-slate-200 font-medium">Empty pointer values</span> 保留 empty pointers，而不是刪除。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">5529676</code><span><span class="text-slate-200 font-medium">Dashboard table positioning</span> 加入 relative positioning。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">f7843cd</code><span><span class="text-slate-200 font-medium">Plugin-defined permissions</span> 在 roles/admin 顯示 plugin permissions。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">0c63fb3</code><span><span class="text-slate-200 font-medium">Mobile sidebar nav</span> 把 sidebar 更新為 full-page mobile menu。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">b450994</code><span><span class="text-slate-200 font-medium">View revision cache-busting</span> 加入 revision-aware view caching。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">088468d</code><span><span class="text-slate-200 font-medium">Loading 及 cache headers</span> 修正 placeholders 及 cache headers。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">eca65ec</code><span><span class="text-slate-200 font-medium">Reactive reorder rows</span> 讓 reorderable rows 對 DOM changes 保持 reactive。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">bf81d6a</code><span><span class="text-slate-200 font-medium">Default layout update</span> refreshes <code class="text-neon">default.liquid</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">580574c</code><span><span class="text-slate-200 font-medium">Client-rendered views</span> 切換 admin views 並加入 proxies。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">8428fdf</code><span><span class="text-slate-200 font-medium">0xCMS site title</span> 重新命名 site title。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">62b430b</code><span><span class="text-slate-200 font-medium">External SVG sprite</span> 透過 sprite 提供 icons。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">7029cab</code><span><span class="text-slate-200 font-medium">Table container styles</span> 標準化 table containers 及 widths。</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-25 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;25</h2>
+        <span class="font-mono text-xs text-slate-500">16 commits &middot; 批量操作、trash 及 UI</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        後台效率大幅提升：加入 page weight 及刪除的批量操作，重整 trash 系統並加入分頁及細緻 purge 選項，同時為 admin UI 加入完整 light theme。
+      </p>
+
+      <div class="relative pl-8">
+        <div class="absolute left-2 top-2 bottom-2 w-px timeline-line"></div>
+
+        <article class="relative mb-6">
+          <span aria-hidden="true" class="absolute -left-[26px] top-1.5 w-3 h-3 rounded-full bg-mint border-2 border-void">&nbsp;</span>
+          <div class="glass glass-hover rounded-xl p-5">
+            <div class="flex items-center gap-3 mb-2 flex-wrap">
+              <code class="font-mono text-xs text-plasma">16fc14f</code>
+              <h3 class="font-semibold text-white">批量 page weight 更新</h3>
+            </div>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              加入 <code class="text-neon">POST /admin/pages/batch-weight</code>，以 DB batch commits 套用批量 weight updates。包含嚴格 input validation 及優化 prepared statements，減少 round-trips。
+            </p>
+          </div>
+        </article>
+
+        <article class="relative mb-6">
+          <span aria-hidden="true" class="absolute -left-[26px] top-1.5 w-3 h-3 rounded-full bg-neon border-2 border-void">&nbsp;</span>
+          <div class="glass glass-hover rounded-xl p-5">
+            <div class="flex items-center gap-3 mb-2 flex-wrap">
+              <code class="font-mono text-xs text-plasma">69927c5</code>
+              <h3 class="font-semibold text-white">拖放 row reordering</h3>
+            </div>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              加入 client-side logic，讓任何帶 <code class="text-neon">data-reorder</code> 的 table 支援拖放排序，並自動以 fetch 把新排序送回 backend。
+            </p>
+          </div>
+        </article>
+
+        <article class="relative mb-6">
+          <span aria-hidden="true" class="absolute -left-[26px] top-1.5 w-3 h-3 rounded-full bg-plasma border-2 border-void">&nbsp;</span>
+          <div class="glass glass-hover rounded-xl p-5">
+            <div class="flex items-center gap-3 mb-2 flex-wrap">
+              <code class="font-mono text-xs text-plasma">09ec980</code>
+              <h3 class="font-semibold text-white">強化 trash 管理</h3>
+            </div>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              Trash view 現在支援按 type 篩選、item counts 及細緻 purge options（例如只 purge 過去一小時 trashed 的 items）。
+            </p>
+          </div>
+        </article>
+
+        <article class="relative mb-6">
+          <span aria-hidden="true" class="absolute -left-[26px] top-1.5 w-3 h-3 rounded-full bg-mint border-2 border-void">&nbsp;</span>
+          <div class="glass glass-hover rounded-xl p-5">
+            <div class="flex items-center gap-3 mb-2 flex-wrap">
+              <code class="font-mono text-xs text-plasma">f1c154c</code>
+              <h3 class="font-semibold text-white">頁面批量 soft-delete</h3>
+            </div>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              加入 <code class="text-neon">DELETE /pages/batch</code>，以單一 D1 transaction 把多個 draft pages 移到 trash，大幅降低 bulk cleanup 的 API overhead。
+            </p>
+          </div>
+        </article>
+
+        <article class="relative mb-6">
+          <span aria-hidden="true" class="absolute -left-[26px] top-1.5 w-3 h-3 rounded-full bg-neon border-2 border-void">&nbsp;</span>
+          <div class="glass glass-hover rounded-xl p-5">
+            <div class="flex items-center gap-3 mb-2 flex-wrap">
+              <code class="font-mono text-xs text-plasma">ca5b6c8</code>
+              <h3 class="font-semibold text-white">Admin light theme</h3>
+            </div>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              以 CSS custom properties 加入完整 light theme stylesheet，作為預設 dark mode 以外的高對比、傳統 Tailwind 風格選項。
+            </p>
+          </div>
+        </article>
+
+        <article class="relative">
+          <span aria-hidden="true" class="absolute -left-[26px] top-1.5 w-3 h-3 rounded-full bg-slate-500 border-2 border-void">&nbsp;</span>
+          <div class="glass glass-hover rounded-xl p-5">
+            <div class="flex items-center gap-3 mb-2 flex-wrap">
+              <code class="font-mono text-xs text-plasma">44b43cc</code>
+              <h3 class="font-semibold text-white">批量頁面建立</h3>
+            </div>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              以 bulk D1 inserts 及單批 unique slug allocation 優化頁面建立，並為穩定性限制每次 request 最多 100 items。
+            </p>
+          </div>
+        </article>
+      </div>
+
+      <div class="mt-6 glass rounded-xl p-5">
+        <h3 class="font-semibold text-white mb-4">其他 2026&#8209;06&#8209;25 commits</h3>
+        <ul class="space-y-3 text-sm text-slate-400">
+          <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">915f714</code><span>加入 batch page-weight endpoint 及 tests。</span></li>
+          <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">991d77c</code><span>更新 <code class="text-neon">admin.css</code>。</span></li>
+          <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">57ae3f3</code><span>為 trash 加入 pagination 及 empty-all action。</span></li>
+          <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">1a17419</code><span>更新 <code class="text-neon">cms-api.ts</code>。</span></li>
+          <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">623a270</code><span>更新 <code class="text-neon">cms-api.ts</code>。</span></li>
+          <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6b740d8</code><span>保留 plugin redirects 並清理 empty pointers。</span></li>
+          <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">589aefd</code><span>加入 <code class="text-neon">blockNamesFor</code> 及 boolean field snippet。</span></li>
+          <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">13a08fe</code><span>更新 <code class="text-neon">routes.test.ts</code>。</span></li>
+          <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">d34d691</code><span>顯示 plugin block types 及 settings nav。</span></li>
+          <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">a6dcd7f</code><span>在 editor previews 顯示 Lect JSON diff。</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-24 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;24</h2>
+        <span class="font-mono text-xs text-slate-500">7 commits · 插件編輯及 APIs</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        較早期改動：native-editor escape hatch、插件 opt-in same-origin framing、更完整 pages API，以及 plugin edit-view support。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">73c2f62</code><span><span class="text-slate-200 font-medium">?native=1 editor bypass</span> — 記錄 query flag，並加入 tests 確認內建 editor 會被提供，且 flag 會保留於 form actions 及 redirects。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">8afddb2</code><span><span class="text-slate-200 font-medium">Native-editor escape hatch</span> — <code>?native=1</code> / <code>?editor=cms</code> 即使插件會 render edit view，仍強制使用內建 CMS editor； <code class="text-neon">preferNativeEditor</code> + <code class="text-neon">withNativeFlag</code> 並把它穿過 action URLs。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">e02ec18</code><span><span class="text-slate-200 font-medium">datetime.liquid</span> — 新增 page-field snippet。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">4ae4f64</code><span><span class="text-slate-200 font-medium">/api/pages/:type</span> 加入 search 及 id lookup。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6393900</code><span><span class="text-slate-200 font-medium">Opt-in same-origin framing</span> 供 plugins 使用。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">4d7c8f2</code><span><span class="text-slate-200 font-medium">Plugin edit view support</span> 已加入。</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">93505b6</code><span>跨頁保留 editor <code>return_to</code>。</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-23 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;23</h2>
+        <span class="font-mono text-xs text-slate-500">16 commits &middot; plugins、schemas 及 trash history</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Plugin system 變成可管理的平台：加入 DB-backed registration、per-plugin secrets、
+        plugin-contributed page types、navigation、read APIs、write-back support，以及更完整的 timezone/schema 基礎。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">95b6eaf</code><span>Extend schema: timezones, trash versions, plugins.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">91b4f86</code><span>Add page timezone support.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">e9502c9</code><span>Set defaultLanguage to <code class="text-neon">'mis'</code> and add locales.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">034ca0c</code><span>Add basic switch pagefield snippet.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">779b8a4</code><span>Remove dump test; conditionally render table header.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">85128a3</code><span>Add test that dumps admin HTML.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">b5ecfe0</code><span>Support plugin readTypes and show plugin names.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">db35601</code><span>Preserve original parent for trashed pages.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">078a0d9</code><span>Decode percent-encoded plugin titles.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">21dd862</code><span>Update <code class="text-neon">plugins.ts</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">2c13f49</code><span>Add per-plugin secret and rotation support.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">3dcccd2</code><span>Add plugin write-back API and trash support.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6caef21</code><span>Support plugin nav in admin layout.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">ca73d5f</code><span>Support plugin-contributed page types in admin.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c4816ca</code><span>Add <code class="text-neon">PLUGIN_SECRET</code> to <code class="text-neon">.dev.vars.example</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6405277</code><span>Add DB-backed plugin registry and admin UI.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-22 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;22</h2>
+        <span class="font-mono text-xs text-slate-500">14 commits &middot; permissions、layout helpers 及 editor scope</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        加入 roles/users admin，讓 admin UI 具備 permission awareness，減少 route rendering boilerplate，
+        並打磨 editor language scope、taxonomy fallback 及 structured editor controls。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">3241a8e</code><span>Replace inline weight form with read-only view.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">438cd24</code><span>Create <code class="text-neon">basic.liquid</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">a69351d</code><span>Redirect to edit with language; scope editor form.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">3189919</code><span>Update CMS config and regenerate admin CSS.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">15330d3</code><span>Update <code class="text-neon">routes.test.ts</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6a2474b</code><span>Remove revert button and update taxonomy fallback.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6417922</code><span>Merge pull request #5 from LionRockJS/refactor/reduce-boilerplate.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">71290fe</code><span>Add <code class="text-neon">renderPage</code> helper to cut route render boilerplate.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">1c1ff3f</code><span>Add <code class="text-neon">adminLayout</code> helper to cut template boilerplate.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c93a50e</code><span>Make admin UI permission-aware.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">9153280</code><span>Add separate <code class="text-neon">tag:write</code> permission.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">54925e8</code><span>Add input bg class in editor and regenerate admin CSS.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">0f23bc7</code><span>Compact weight inputs in structured editor.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">20261cc</code><span>Add roles/users admin and permission system.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-21 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;21</h2>
+        <span class="font-mono text-xs text-slate-500">5 commits &middot; database-defined content model</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        更多 content configuration 移入資料庫：page types、block types、taxonomies rename、
+        unique draft slugs、cache fixes，以及重新產生 admin utility styles。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">8a2a407</code><span>Add DB-backed block types and admin UI.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c602735</code><span>Rename tag_types and tag_lists to taxonomies.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">2d53bfd</code><span>Ensure unique draft slugs; cache and lect fixes.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">d01f7b0</code><span>Add database-defined page types and admin UI.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">ad31713</code><span>Regenerate <code class="text-neon">admin.css</code> Tailwind utilities.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-20 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;20</h2>
+        <span class="font-mono text-xs text-slate-500">2 commits &middot; publish adapter merge</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        將 publish-adapter branch 合入主線，並加入 example plugin publish targets 及 tests。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">001de3c</code><span>Merge branch <code class="text-neon">publish-adapters</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c1d96b7</code><span>Add example publish plugins and tests.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-12 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;12</h2>
+        <span class="font-mono text-xs text-slate-500">2 commits &middot; pluggable publish targets</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        加入 publish-target architecture，包含 D1、R2 及 plugin fan-out paths。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">ab15ce8</code><span>Merge pull request #4 from LionRockJS/publish-adapters.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">1d350ad</code><span>Add pluggable publish targets: d1, r2, plugin.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-11 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;11</h2>
+        <span class="font-mono text-xs text-slate-500">2 commits &middot; editor metadata 及 presence cleanup</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        改善 editor metadata 顯示、安全解析 lect，並簡化 presence storage behavior。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">dccc8af</code><span>Display modifier name and safely parse lect.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">12c93da</code><span>Remove presence table; add avatar fallback.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-10 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;10</h2>
+        <span class="font-mono text-xs text-slate-500">11 commits &middot; security hardening</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        以安全加固為主：更嚴格 CSP/JWT claims、fail-closed CSRF、hardened cookies、
+        upload protections、rate limiting、registration controls、audit logging 及 plugin proxy safeguards。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">e7641d9</code><span>Add presence handling to PageSync DO and routes.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">0e47957</code><span>Merge pull request #3 from LionRockJS/security-hardening.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">78e2891</code><span>Enforce sensitive cache headers and plugin secret.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">d941293</code><span>Resolve P3: capability-based RBAC and plugin shared-origin mitigation.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">9f3b9c0</code><span>Merge pull request #2 from LionRockJS/security-hardening.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">1fc713b</code><span>Session hygiene, registration allowlist, audit logging.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">80b3cd9</code><span>Plugin proxy header allowlist, CSV filename encoding, presence validation.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">7f5397d</code><span>Fail-closed CSRF checks, <code class="text-neon">__Host-</code> auth cookies, POST-only logout.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">8b20692</code><span>Strict CSP with local Tailwind build and per-request nonces; JWT issuer/audience.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">7601059</code><span>Add IP-keyed rate limiting to auth and upload endpoints.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">10336e1</code><span>Harden media upload and serving against stored XSS.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-09 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;09</h2>
+        <span class="font-mono text-xs text-slate-500">9 commits &middot; CRDT collaboration、presence 及 plugins</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        建立 collaborative editing 基礎：PageSync、CRDT operations、WebSocket attachment、
+        presence tracking、multi-user tests、plugin integration 及 modular admin routes。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">3b27d05</code><span>Sanitize WebSocket fields and omit avatar relay.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">99c3d7e</code><span>Add PageSync multi-user tests; relax editor.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">2d4cdfc</code><span>CRDT: per-user ops, reset and save handling.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">151951c</code><span>Improve CRDT sync, WebSocket attachment, and presence interval.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">e4c9b20</code><span>Update <code class="text-neon">editor.liquid</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">83e1fe0</code><span>Add PageSync DO and editor CRDT sync.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6642664</code><span>Add presence tracking: DB, API, UI.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">bf3850c</code><span>Add plugin system and integrate plugins.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">bfb92b5</code><span>Refactor admin into modular routes and utilities.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-08 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;08</h2>
+        <span class="font-mono text-xs text-slate-500">1 commit &middot; published DB isolation</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        將 published content 拆到獨立 D1 database，讓 public readers 與 draft/admin data 隔離。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">0dd60f3</code><span>Split published content into separate D1 DB.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-07 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;07</h2>
+        <span class="font-mono text-xs text-slate-500">6 commits &middot; CSV import/export 及 dashboard scale</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        擴展 content operations：localized CSV import/export、draft exports、lect-derived fields、
+        dashboard pagination、import shortcuts 及 batched lookups。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">31f03de</code><span>Add bulk CSV import and batched lookups.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">27c134c</code><span>Add CSV import links to admin dashboard.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6e4d3b0</code><span>Add pagination to admin dashboard.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">b8a1f02</code><span>Include lect-derived fields in CSV exports.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">dde2e0d</code><span>Add CSV export for draft pages.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">e10bb9a</code><span>Support localized CSV import/export.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-06 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;06</h2>
+        <span class="font-mono text-xs text-slate-500">6 commits &middot; CSV workflows 及 editor references</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        加入 CSV import modes、preview/confirmation flow、import/export foundations、parent-page APIs、
+        dynamic editor comboboxes 及 advanced-search blueprint options。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">85a7752</code><span>Add CSV import modes and UI options.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">561c2ed</code><span>Add CSV import preview and confirmation flow.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">43ae6c3</code><span>Update <code class="text-neon">dashboard.liquid</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">34c308b</code><span>Add parent-pages API and dynamic editor combobox.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">da29d3c</code><span>Add CSV import/export and parent combobox.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">7e5d1fa</code><span>Add blueprint path options for advanced search.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-05 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;05</h2>
+        <span class="font-mono text-xs text-slate-500">5 commits &middot; advanced search</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        建立 advanced-search 介面：multi-type criteria、locked page-type routes、dashboard search，
+        以及 admin searches 的 redirect behavior。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">603d6b5</code><span>Redirect admin searches to advanced-search.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">2fb2cbb</code><span>Add dashboard search and lock advanced-search type.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6feacca</code><span>Use path param for advanced-search page type.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">55cbb73</code><span>Advanced search: multi-type and dynamic criteria.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">1ae0fb7</code><span>Add advanced search feature and UI tweaks.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-04 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;04</h2>
+        <span class="font-mono text-xs text-slate-500">11 commits &middot; media、structured editor 及 initial schema</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        加入 private R2 media uploads、Cloudflare image previews、error response cleanup、
+        draft metadata、initial schema consolidation、item weights 及 structured-editor improvements。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">4093cbb</code><span>Serve thumbnails via <code class="text-neon">/media-preview</code> with resize.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">d8e97c8</code><span>Add Cloudflare image preview and upload guidance.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">aed7522</code><span>Add <code class="text-neon">X-CMS-Error</code> header to error responses.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">b9a137c</code><span>Return JSON for forbidden admin/api requests.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">7f1fa8b</code><span>Return JSON for admin upload auth errors.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">64f27b4</code><span>Add private R2 media uploads and tests.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">b3906f2</code><span>Add draft metadata to created/merged lects.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">0e8101b</code><span>Consolidate migrations into initial schema.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">02444c6</code><span>Add page creator and editors metadata.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">f1c58e1</code><span>Add implicit item weights and sort items.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">90231e6</code><span>Structured editor: block attrs, tags, live-diff.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-03 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;03</h2>
+        <span class="font-mono text-xs text-slate-500">23 commits &middot; admin views、lect migration 及 mobile UI</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        大型 admin build-out：responsive templates、Liquid/JSON view experiments、editor/tag parity、
+        lect migration、version-table unification、CSP/referer fixes 及 package updates。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">9257a97</code><span>Respect secure cookies; UI/accessibility tweaks.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c09dbb3</code><span>Add package-lock and update package.json.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">d1e1f00</code><span>Delete package-lock.json.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">642c768</code><span>Update package-lock.json.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">6e7d5cf</code><span>Update <code class="text-neon">dashboard.liquid</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">fbcb905</code><span>Update <code class="text-neon">dashboard.liquid</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">64fd421</code><span>Make admin UI responsive and mobile-friendly.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">9ca0b0b</code><span>Switch from Liquid to JSON template views.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">71091a5</code><span>Add JSON template rendering and Emmet integration.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">932cbf7</code><span>Load Liquid templates via VIEWS fetcher.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">413ee79</code><span>Use LiquidJS templates for admin views.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">767988b</code><span>Update <code class="text-neon">index.ts</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">40b0b40</code><span>Refactor tag admin routes to use page components.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">a7d6277</code><span>Add admin templates and editor improvements.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">9eee329</code><span>Update <code class="text-neon">auth.ts</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">248e1cc</code><span>Unify page version tables into <code class="text-neon">page_versions</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">67ada5b</code><span>Migrate <code class="text-neon">original</code> structured content to <code class="text-neon">lect</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">93a9dd5</code><span>Update <code class="text-neon">editor.ts</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">b0d1e10</code><span>Show default-language value as placeholder.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">ddc57af</code><span>Add favicon route; fix editor URL and CSP.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">74d1da1</code><span>Update <code class="text-neon">editor.ts</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">fb45883</code><span>Add page-type datalist and referer checks.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">f775ce1</code><span>Add admin CMS parity: originals, tags, media.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-02 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;02</h2>
+        <span class="font-mono text-xs text-slate-500">4 commits &middot; database bindings 及 roles</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        Consolidate content database bindings，支援 comma-separated roles，並擴展 origin checks。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">f6d4794</code><span>Support allowed origins in security checks.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">0f66f41</code><span>Consolidate D1 databases into single DB binding.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">fc9db3d</code><span>Unify content DB into single <code class="text-neon">CONTENT_DB</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">5937543</code><span>Support comma-separated user roles and utilities.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-06-01 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;06&#8209;01</h2>
+        <span class="font-mono text-xs text-slate-500">1 commit &middot; OAuth and headers</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        加入 multi-provider OAuth support 及 security headers。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">dc62ba2</code><span>Support multi-provider OAuth and security headers.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-05-30 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;05&#8209;30</h2>
+        <span class="font-mono text-xs text-slate-500">9 commits &middot; auth、trash 及 dependencies</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        建立早期 auth/data split：AUTH_DB、trash workflow、Eventuai OAuth integration、
+        dependency upgrades、config updates，以及 repository root commit。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">25adf0a</code><span>Update <code class="text-neon">wrangler.toml</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">4fd286c</code><span>Update <code class="text-neon">login.ts</code>.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">ca123a2</code><span>Add Eventuai OAuth provider and role sync.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">565df36</code><span>Upgrade esbuild, TypeScript, Wrangler, and Hono.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">5993d38</code><span>Add cms-trash DB and update AUTH_DB id.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">372e5a5</code><span>Add AUTH_DB and move auth data off LIVE.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">93b3909</code><span>Add trash soft-delete workflow.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">c415a99</code><span>Merge pull request #1 from LionRockJS/copilot/create-database-migration-for-content.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">409f105</code><span>Initial commit.</span></li>
+      </ul>
+    </section>
+
+    <!-- ───────────────────────── 2026-05-29 ───────────────────────── -->
+    <section class="mb-16">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-6">
+        <h2 class="font-mono text-2xl font-bold text-white/80">2026&#8209;05&#8209;29</h2>
+        <span class="font-mono text-xs text-slate-500">2 commits &middot; first CMS plan and Worker implementation</span>
+      </div>
+
+      <p class="text-slate-300 mb-8 leading-relaxed">
+        以 initial implementation plan 及第一個 Cloudflare Worker CMS scaffold 開始：
+        OAuth 2.1、dual JWTs，以及 live/draft database workflow。
+      </p>
+
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">505b671</code><span>Add Cloudflare Worker CMS with OAuth 2.1, dual JWT, and LIVE/DRAFT database workflow.</span></li>
+        <li class="flex gap-3"><code class="font-mono text-xs text-plasma shrink-0">f53cdcb</code><span>Initial plan.</span></li>
+      </ul>
+    </section>
+
+    <!-- footer note -->
+    <div class="glass rounded-xl p-5 text-center">
+        <p class="font-mono text-xs text-slate-500">
+          由 0xCMS Worker commit log 產生 &middot; 最後更新 2026&#8209;07&#8209;14
+        </p>
+
+    </div>
+
+  </main>
+
+  <footer class="border-t border-plasma/10 py-8">
+    <div class="max-w-4xl mx-auto px-5 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs text-slate-500">
+      <span>0x<span class="gradient-text">CMS</span> — 建於 Cloudflare Workers 的邊緣原生 CMS</span>
+      <a href="index.html" class="hover:text-neon transition-colors">&larr; 返回首頁</a>
+    </div>
+  </footer>
+
+</body>
+</html>

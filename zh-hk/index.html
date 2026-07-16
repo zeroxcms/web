@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="zh-HK" class="scroll-smooth">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>0xCMS — Edge-Native Content Management on Cloudflare Workers</title>
-  <meta name="description" content="0xCMS is an edge-native, open content management system deployed on Cloudflare Workers. OAuth 2.1, pluggable publish targets (D1, static JSON in R2, IPFS via plugins), private R2 media, page versioning, and a Worker plugin system." />
-  <link rel="alternate" hreflang="en" href="index.html" />
-  <link rel="alternate" hreflang="zh-HK" href="zh-hk/index.html" />
+  <title>0xCMS — 建於 Cloudflare Workers 的邊緣原生內容管理系統</title>
+  <meta name="description" content="0xCMS 是部署於 Cloudflare Workers 的邊緣原生開放內容管理系統，支援 OAuth 2.1、可插拔發佈目標、私有 R2 媒體庫、頁面版本及 Worker 插件系統。" />
+  <link rel="alternate" hreflang="en" href="../index.html" />
+  <link rel="alternate" hreflang="zh-HK" href="index.html" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -142,34 +142,34 @@
       </a>
 
       <div class="hidden md:flex items-center gap-8 font-mono text-sm">
-        <a href="#features" class="text-slate-400 hover:text-neon transition-colors">/features</a>
-        <a href="features.html" class="text-slate-400 hover:text-neon transition-colors">/all-features</a>
-        <a href="#architecture" class="text-slate-400 hover:text-neon transition-colors">/architecture</a>
-        <a href="page.html" class="text-slate-400 hover:text-neon transition-colors">/data-model</a>
-        <a href="cms-update.html" class="text-slate-400 hover:text-neon transition-colors">/updates</a>
-        <a href="#get-started" class="text-slate-400 hover:text-neon transition-colors">/get-started</a>
-        <a href="zh-hk/index.html" hreflang="zh-HK" class="text-slate-400 hover:text-neon transition-colors">繁中</a>
+        <a href="#features" class="text-slate-400 hover:text-neon transition-colors">/功能</a>
+        <a href="features.html" class="text-slate-400 hover:text-neon transition-colors">/完整功能</a>
+        <a href="#architecture" class="text-slate-400 hover:text-neon transition-colors">/架構</a>
+        <a href="page.html" class="text-slate-400 hover:text-neon transition-colors">/資料模型</a>
+        <a href="cms-update.html" class="text-slate-400 hover:text-neon transition-colors">/更新</a>
+        <a href="#get-started" class="text-slate-400 hover:text-neon transition-colors">/開始使用</a>
+        <a href="../index.html" hreflang="en" class="text-slate-400 hover:text-neon transition-colors">English</a>
         <a href="https://cms.eventuai.com" target="_blank" rel="noopener"
            class="neon-btn px-5 py-2 rounded-lg bg-neon/10 border border-neon/50 text-neon font-semibold">
-          Launch App ↗
+          開啟 App ↗
         </a>
       </div>
 
-      <button id="menu-btn" class="md:hidden text-slate-300 p-2" aria-label="Toggle menu">
+      <button id="menu-btn" class="md:hidden text-slate-300 p-2" aria-label="切換選單">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
       </button>
     </nav>
 
     <!-- mobile menu -->
     <div id="mobile-menu" class="hidden md:hidden glass mx-4 rounded-xl p-4 flex flex-col gap-3 font-mono text-sm">
-      <a href="#features" class="text-slate-300 hover:text-neon py-1">/features</a>
-      <a href="features.html" class="text-slate-300 hover:text-neon py-1">/all-features</a>
-      <a href="#architecture" class="text-slate-300 hover:text-neon py-1">/architecture</a>
-      <a href="page.html" class="text-slate-300 hover:text-neon py-1">/data-model</a>
-      <a href="cms-update.html" class="text-slate-300 hover:text-neon py-1">/updates</a>
-      <a href="#get-started" class="text-slate-300 hover:text-neon py-1">/get-started</a>
-      <a href="zh-hk/index.html" hreflang="zh-HK" class="text-slate-300 hover:text-neon py-1">繁中</a>
-      <a href="https://cms.eventuai.com" target="_blank" rel="noopener" class="text-neon font-semibold py-1">Launch App ↗</a>
+      <a href="#features" class="text-slate-300 hover:text-neon py-1">/功能</a>
+      <a href="features.html" class="text-slate-300 hover:text-neon py-1">/完整功能</a>
+      <a href="#architecture" class="text-slate-300 hover:text-neon py-1">/架構</a>
+      <a href="page.html" class="text-slate-300 hover:text-neon py-1">/資料模型</a>
+      <a href="cms-update.html" class="text-slate-300 hover:text-neon py-1">/更新</a>
+      <a href="#get-started" class="text-slate-300 hover:text-neon py-1">/開始使用</a>
+      <a href="../index.html" hreflang="en" class="text-slate-300 hover:text-neon py-1">English</a>
+      <a href="https://cms.eventuai.com" target="_blank" rel="noopener" class="text-neon font-semibold py-1">開啟 App ↗</a>
     </div>
   </header>
 
@@ -183,45 +183,42 @@
       <div>
         <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 font-mono text-xs text-mint mb-7">
           <span aria-hidden="true" class="w-2 h-2 rounded-full bg-mint animate-pulse">&nbsp;</span>
-          deployed at the edge · 300+ locations
+          部署於邊緣網絡 · 300+ 節點
         </div>
 
         <h1 class="text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.05] tracking-tight">
-          Content,<br />
-          <span class="gradient-text">decentralized</span><br />
-          by design.
+          內容管理，<br />
+          <span class="gradient-text">天生去中心化</span><br />
+          為邊緣而設。
         </h1>
 
         <p class="mt-6 text-lg text-slate-400 max-w-xl leading-relaxed">
-          <span class="text-white font-semibold">0xCMS</span> is an edge-native content management
-          system that runs entirely on Cloudflare Workers. OAuth 2.1 sign-in, publishing that
-          fans out to any target — database, static JSON, IPFS — versioned content, private
-          media vault. Zero servers, zero cold starts.
+          <span class="text-white font-semibold">0xCMS</span> 是完全運行於 Cloudflare Workers 的邊緣原生內容管理系統。OAuth 2.1 登入、可發佈到任何目標 — 資料庫、R2 靜態 JSON、IPFS — 內建版本內容及私有媒體庫。零伺服器，零冷啟動。
         </p>
 
         <div class="mt-9 flex flex-wrap items-center gap-4">
           <a href="https://cms.eventuai.com" target="_blank" rel="noopener"
              class="neon-btn px-7 py-3.5 rounded-xl bg-gradient-to-r from-neon/20 to-plasma/20 border border-neon/60 text-white font-semibold font-mono">
-            ▶ Try it live
+            ▶ 即時試用
           </a>
           <a href="#get-started"
              class="px-7 py-3.5 rounded-xl glass glass-hover text-slate-200 font-mono font-semibold">
-            $ get started
+            $ 開始使用
           </a>
         </div>
 
         <div class="mt-10 grid grid-cols-3 gap-4 max-w-md font-mono">
           <div>
             <div class="text-2xl font-bold text-neon" data-count="0" data-target="0">0<span class="text-slate-500 text-base">ms</span></div>
-            <div class="text-xs text-slate-500 mt-1">cold starts</div>
+            <div class="text-xs text-slate-500 mt-1">冷啟動</div>
           </div>
           <div>
             <div class="text-2xl font-bold text-plasma">n×</div>
-            <div class="text-xs text-slate-500 mt-1">publish targets</div>
+            <div class="text-xs text-slate-500 mt-1">發佈目標</div>
           </div>
           <div>
             <div class="text-2xl font-bold text-mint">∞</div>
-            <div class="text-xs text-slate-500 mt-1">page versions</div>
+            <div class="text-xs text-slate-500 mt-1">頁面版本</div>
           </div>
         </div>
       </div>
@@ -240,13 +237,13 @@
             </div>
             <div class="p-5 sm:p-6 font-mono text-[13px] leading-7">
               <p><span class="text-plasma">❯</span> <span class="text-slate-200">npm run deploy</span></p>
-              <p class="text-slate-500">Compiled Tailwind admin UI ✓</p>
-              <p class="text-slate-500">Uploaded <span class="text-neon">0xcms</span> (2.41 sec)</p>
-              <p class="text-slate-500">D1 bindings: <span class="text-plasma">DB</span> · <span class="text-plasma">PUBLISHED_DB</span></p>
-              <p class="text-slate-500">R2 vault: <span class="text-mint">MEDIA_BUCKET</span> [private]</p>
-              <p class="text-slate-500">Publish targets: <span class="text-neon">d1</span> · <span class="text-neon">r2</span> · <span class="text-neon">plugin:ipfs</span></p>
-              <p class="text-slate-500">Durable Object: <span class="text-neon">PageSyncDO</span> [realtime]</p>
-              <p><span class="tick">✔</span> <span class="text-slate-300">Deployed to</span> <a href="https://cms.eventuai.com" target="_blank" rel="noopener" class="text-neon underline decoration-neon/40 hover:decoration-neon">https://cms.eventuai.com</a></p>
+              <p class="text-slate-500">已編譯 Tailwind 後台 UI ✓</p>
+              <p class="text-slate-500">已上載 <span class="text-neon">0xcms</span>（2.41 秒）</p>
+              <p class="text-slate-500">D1 綁定： <span class="text-plasma">DB</span> · <span class="text-plasma">PUBLISHED_DB</span></p>
+              <p class="text-slate-500">R2 私有庫： <span class="text-mint">MEDIA_BUCKET</span> [private]</p>
+              <p class="text-slate-500">發佈目標： <span class="text-neon">d1</span> · <span class="text-neon">r2</span> · <span class="text-neon">plugin:ipfs</span></p>
+              <p class="text-slate-500">Durable Object： <span class="text-neon">PageSyncDO</span> [realtime]</p>
+              <p><span class="tick">✔</span> <span class="text-slate-300">已部署到</span> <a href="https://cms.eventuai.com" target="_blank" rel="noopener" class="text-neon underline decoration-neon/40 hover:decoration-neon">https://cms.eventuai.com</a></p>
               <p class="mt-2"><span class="text-plasma">❯</span> <span id="typed" class="text-slate-200 terminal-caret"></span></p>
             </div>
           </div>
@@ -256,50 +253,50 @@
   </section>
 
   <!-- ───────────────────────── FEATURES ───────────────────────── -->
-  <section id="features" class="relative py-24">
+  <section id="功能" class="relative py-24">
     <div class="glow-orb w-[26rem] h-[26rem] bg-plasma top-1/3 left-1/2 -translate-x-1/2"></div>
     <div class="relative max-w-7xl mx-auto px-5 sm:px-8">
       <div class="reveal text-center max-w-2xl mx-auto">
-        <p class="font-mono text-sm text-neon mb-3">// 01 — introduction</p>
-        <h2 class="text-4xl sm:text-5xl font-bold text-white tracking-tight">The protocol layer for <span class="gradient-text">your content</span></h2>
-        <p class="mt-5 text-slate-400 text-lg">Everything a serious publishing stack needs, compiled into a single Worker. No origin servers. No databases to babysit. Trustless by default — even your media bucket is private.</p>
+        <p class="font-mono text-sm text-neon mb-3">// 01 — 簡介</p>
+        <h2 class="text-4xl sm:text-5xl font-bold text-white tracking-tight">為你的內容而設的 <span class="gradient-text">協議層</span></h2>
+        <p class="mt-5 text-slate-400 text-lg">一個認真出版系統需要的所有能力，都編進單一 Worker。沒有 origin server，沒有需要看守的資料庫。預設以最小信任運作，連媒體 bucket 都是私有。</p>
       </div>
 
       <div class="mt-16 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
         <div class="reveal glass glass-hover rounded-2xl p-7">
           <div class="w-11 h-11 rounded-xl bg-neon/10 border border-neon/30 grid place-items-center font-mono text-neon mb-5">🔐</div>
           <h3 class="text-white font-semibold text-lg mb-2">OAuth 2.1 + PKCE</h3>
-          <p class="text-sm text-slate-400 leading-relaxed">Sign in with Eventuai, GitHub, or Google. Dual JWTs — 15-minute access tokens plus rotatable 7-day refresh tokens, hashed in D1 for instant revocation.</p>
+          <p class="text-sm text-slate-400 leading-relaxed">以 Eventuai、GitHub 或 Google 登入。雙 JWT 設計：15 分鐘 access token，加上可輪換的 7 日 refresh token，並以 hash 存於 D1，方便即時撤銷。</p>
         </div>
 
         <div class="reveal glass glass-hover rounded-2xl p-7">
           <div class="w-11 h-11 rounded-xl bg-plasma/10 border border-plasma/30 grid place-items-center font-mono text-plasma mb-5">⛓️</div>
-          <h3 class="text-white font-semibold text-lg mb-2">Pluggable publish targets</h3>
-          <p class="text-sm text-slate-400 leading-relaxed">Publishing fans one snapshot out through adapters: the published D1 store, static JSON in an R2 bucket, or any plugin Worker — pin to IPFS, ping a webhook, feed a search index. Per-target failures surface in the editor.</p>
+          <h3 class="text-white font-semibold text-lg mb-2">Pluggable 發佈目標</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">發佈時會把同一份 snapshot 透過 adapter 分發出去：已發佈 D1、R2 bucket 內的靜態 JSON，或任何插件 Worker — 可 pin 到 IPFS、觸發 webhook、餵入搜尋索引。每個目標的錯誤都會在編輯器顯示。</p>
         </div>
 
         <div class="reveal glass glass-hover rounded-2xl p-7">
           <div class="w-11 h-11 rounded-xl bg-mint/10 border border-mint/30 grid place-items-center font-mono text-mint mb-5">🧬</div>
-          <h3 class="text-white font-semibold text-lg mb-2">Versioned everything</h3>
-          <p class="text-sm text-slate-400 leading-relaxed">Every save mints a new page version. Roll back any page to any point in its history — your content ledger is append-only.</p>
+          <h3 class="text-white font-semibold text-lg mb-2">所有內容都有版本</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">每次儲存都會建立新的頁面版本。任何頁面都可回復到歷史任一時間點 — 你的內容帳本只會追加，不會覆寫。</p>
         </div>
 
         <div class="reveal glass glass-hover rounded-2xl p-7">
           <div class="w-11 h-11 rounded-xl bg-neon/10 border border-neon/30 grid place-items-center font-mono text-neon mb-5">🛰️</div>
-          <h3 class="text-white font-semibold text-lg mb-2">Realtime page sync</h3>
-          <p class="text-sm text-slate-400 leading-relaxed">A Durable Object coordinates concurrent editors per page, so your team never overwrites each other's work.</p>
+          <h3 class="text-white font-semibold text-lg mb-2">即時頁面同步</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">每個頁面由 Durable Object 協調多人同時編輯，團隊成員不會互相覆蓋工作。</p>
         </div>
 
         <div class="reveal glass glass-hover rounded-2xl p-7">
           <div class="w-11 h-11 rounded-xl bg-plasma/10 border border-plasma/30 grid place-items-center font-mono text-plasma mb-5">🗄️</div>
-          <h3 class="text-white font-semibold text-lg mb-2">Private media vault</h3>
-          <p class="text-sm text-slate-400 leading-relaxed">Uploads land in a private R2 bucket — never public. The Worker gates every read at <code class="text-neon/80">/media/*</code>, with on-the-fly image resizing served from <code class="text-neon/80">/media-preview/*</code> for thumbnails.</p>
+          <h3 class="text-white font-semibold text-lg mb-2">私有媒體庫</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">上載檔案會落在私有 R2 bucket，不會公開。Worker 會在 <code class="text-neon/80">/media/*</code> 控制每次讀取，並透過 <code class="text-neon/80">/media-preview/*</code> 即時縮圖。</p>
         </div>
 
         <div class="reveal glass glass-hover rounded-2xl p-7">
           <div class="w-11 h-11 rounded-xl bg-mint/10 border border-mint/30 grid place-items-center font-mono text-mint mb-5">🧩</div>
-          <h3 class="text-white font-semibold text-lg mb-2">Worker plugins</h3>
-          <p class="text-sm text-slate-400 leading-relaxed">Extend with separate Workers registered over HTTPS: lifecycle hooks, custom content types, fields &amp; blocks, admin pages, publish targets. No runtime installs, no CMS redeploy — paste a URL in the admin UI, each plugin gets its own secret.</p>
+          <h3 class="text-white font-semibold text-lg mb-2">Worker 插件</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">Extend with separate Workers registered over HTTPS: lifecycle hooks, custom content types, fields &amp; blocks, admin pages, 發佈目標. No runtime installs, no CMS redeploy — paste a URL in the admin UI, each plugin gets its own secret.</p>
         </div>
       </div>
 
@@ -307,20 +304,20 @@
       <div class="reveal mt-12 text-center">
         <a href="features.html"
            class="neon-btn inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-gradient-to-r from-neon/15 to-plasma/15 border border-neon/50 text-white font-semibold font-mono">
-          See the full feature list <span aria-hidden="true">→</span>
+          查看完整功能清單 <span aria-hidden="true">→</span>
         </a>
-        <p class="mt-3 font-mono text-xs text-slate-500">19 categories · read straight from the source</p>
+        <p class="mt-3 font-mono text-xs text-slate-500">19 個分類 · 直接讀自原始碼</p>
       </div>
 
       <!-- security strip -->
       <div class="reveal mt-12 glass rounded-2xl p-6 sm:p-8">
         <div class="flex flex-wrap items-center justify-center gap-x-10 gap-y-4 font-mono text-xs sm:text-sm text-slate-400">
-          <span class="text-slate-500">HARDENED BY DEFAULT:</span>
-          <span><span class="tick">✔</span> CSP nonces</span>
-          <span><span class="tick">✔</span> Rate limiting</span>
-          <span><span class="tick">✔</span> Cross-origin mutation guard</span>
-          <span><span class="tick">✔</span> Canonical host enforcement</span>
-          <span><span class="tick">✔</span> Role-based access</span>
+          <span class="text-slate-500">預設已加固：</span>
+          <span><span class="tick">✔</span> CSP nonce</span>
+          <span><span class="tick">✔</span> 速率限制</span>
+          <span><span class="tick">✔</span> 跨來源修改保護</span>
+          <span><span class="tick">✔</span> Canonical host 強制檢查</span>
+          <span><span class="tick">✔</span> 角色權限控制</span>
         </div>
       </div>
     </div>
@@ -330,21 +327,21 @@
   <section id="architecture" class="relative py-24">
     <div class="relative max-w-7xl mx-auto px-5 sm:px-8">
       <div class="reveal text-center max-w-2xl mx-auto">
-        <p class="font-mono text-sm text-plasma mb-3">// 02 — architecture</p>
-        <h2 class="text-4xl sm:text-5xl font-bold text-white tracking-tight">Publish flow, <span class="gradient-text">on-chain style</span></h2>
-        <p class="mt-5 text-slate-400 text-lg">Drafts stay private. One publish action mints a snapshot and fans it out through adapters — to the published database, a static-JSON bucket, or any plugin Worker you bind. Readers never touch your admin data.</p>
+        <p class="font-mono text-sm text-plasma mb-3">// 02 — 架構</p>
+        <h2 class="text-4xl sm:text-5xl font-bold text-white tracking-tight">像鏈上一樣清晰的 <span class="gradient-text">發佈流程</span></h2>
+        <p class="mt-5 text-slate-400 text-lg">草稿保持私有。一次發佈會建立 snapshot，並透過 adapter 分發到已發佈資料庫、靜態 JSON bucket，或你綁定的任何插件 Worker。讀者永遠不會碰到後台資料。</p>
       </div>
 
       <div class="reveal mt-14 glass rounded-2xl p-7 sm:p-10 overflow-x-auto">
         <div class="min-w-[720px] flex items-center justify-between gap-4 font-mono text-sm">
           <div class="flex-1 rounded-xl border border-plasma/40 bg-plasma/5 p-5 text-center">
-            <div class="text-plasma font-bold mb-1.5">DB · private</div>
+            <div class="text-plasma font-bold mb-1.5">DB · 私有</div>
             <div class="text-xs text-slate-400 leading-6">users · sessions<br/>draft_pages · page_versions<br/>tags · trash · media_files</div>
           </div>
           <div class="flex flex-col items-center gap-1.5 text-xs">
-            <span class="text-mint">— publish ⟶</span>
+            <span class="text-mint">— 發佈 ⟶</span>
             <svg width="120" height="20"><line x1="0" y1="10" x2="120" y2="10" stroke="url(#g1)" stroke-width="2" stroke-dasharray="6 5"><animate attributeName="stroke-dashoffset" from="22" to="0" dur="1s" repeatCount="indefinite"/></line><defs><linearGradient id="g1"><stop offset="0%" stop-color="#a855f7"/><stop offset="100%" stop-color="#34d399"/></linearGradient></defs></svg>
-            <span class="text-slate-500 inline-flex items-center gap-1">un-publish
+            <span class="text-slate-500 inline-flex items-center gap-1">取消發佈
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-rose-400/80" aria-label="delete"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg> ⟶</span>
           </div>
           <div class="flex-1 flex flex-col gap-2.5">
@@ -357,27 +354,27 @@
               <div class="text-[11px] text-slate-400">pages/&lt;uuid&gt;.json · index.json</div>
             </div>
             <div class="rounded-xl border border-plasma/40 bg-plasma/5 p-3 text-center">
-              <div class="text-plasma font-bold text-xs mb-0.5">plugin · your Worker</div>
-              <div class="text-[11px] text-slate-400">IPFS · webhooks · search index</div>
+              <div class="text-plasma font-bold text-xs mb-0.5">plugin · 你的 Worker</div>
+              <div class="text-[11px] text-slate-400">IPFS · webhook · 搜尋索引</div>
             </div>
           </div>
           <div class="flex flex-col items-center gap-1.5 text-xs">
-            <span class="text-neon">— reads ⟶</span>
+            <span class="text-neon">— 讀取 ⟶</span>
             <svg width="120" height="20"><line x1="0" y1="10" x2="120" y2="10" stroke="#22d3ee" stroke-width="2" stroke-dasharray="6 5"><animate attributeName="stroke-dashoffset" from="22" to="0" dur="1s" repeatCount="indefinite"/></line></svg>
-            <span class="text-slate-500">edge cache</span>
+            <span class="text-slate-500">邊緣快取</span>
           </div>
           <div class="flex-1 rounded-xl border border-neon/40 bg-neon/5 p-5 text-center">
-            <div class="text-neon font-bold mb-1.5">🌐 Public site</div>
-            <div class="text-xs text-slate-400 leading-6">Liquid templates<br/>served from 300+<br/>edge locations</div>
+            <div class="text-neon font-bold mb-1.5">🌐 公開網站</div>
+            <div class="text-xs text-slate-400 leading-6">Liquid 模板<br/>由 300+<br/>邊緣節點提供</div>
           </div>
         </div>
-        <p class="mt-6 text-center font-mono text-xs text-slate-500">PUBLISH_TARGETS = <span class="text-mint">"d1,r2"</span> · plugins opt in with <span class="text-plasma">publishTarget: true</span> · per-target failures reported, never silent</p>
+        <p class="mt-6 text-center font-mono text-xs text-slate-500">PUBLISH_TARGETS = <span class="text-mint">"d1,r2"</span> · 插件以 <span class="text-plasma">publishTarget: true</span> · 每個目標的錯誤都會回報，絕不靜默失敗</p>
       </div>
 
       <div class="reveal mt-8 grid sm:grid-cols-3 gap-5 font-mono text-sm">
-        <div class="glass rounded-xl p-5 text-center"><span class="text-neon">Hono</span><span class="text-slate-500"> + </span><span class="text-plasma">TypeScript</span><div class="text-xs text-slate-500 mt-1.5">router &amp; runtime</div></div>
-        <div class="glass rounded-xl p-5 text-center"><span class="text-mint">Tailwind</span><span class="text-slate-500"> + </span><span class="text-neon">VanillaJS</span><div class="text-xs text-slate-500 mt-1.5">zero-framework admin UI</div></div>
-        <div class="glass rounded-xl p-5 text-center"><span class="text-plasma">LiquidJS</span><span class="text-slate-500"> + </span><span class="text-mint">Emmet</span><div class="text-xs text-slate-500 mt-1.5">templating &amp; authoring</div></div>
+        <div class="glass rounded-xl p-5 text-center"><span class="text-neon">Hono</span><span class="text-slate-500"> + </span><span class="text-plasma">TypeScript</span><div class="text-xs text-slate-500 mt-1.5">路由及 runtime</div></div>
+        <div class="glass rounded-xl p-5 text-center"><span class="text-mint">Tailwind</span><span class="text-slate-500"> + </span><span class="text-neon">VanillaJS</span><div class="text-xs text-slate-500 mt-1.5">零框架後台 UI</div></div>
+        <div class="glass rounded-xl p-5 text-center"><span class="text-plasma">LiquidJS</span><span class="text-slate-500"> + </span><span class="text-mint">Emmet</span><div class="text-xs text-slate-500 mt-1.5">模板及內容編寫</div></div>
       </div>
     </div>
   </section>
@@ -387,41 +384,25 @@
     <div class="glow-orb w-[28rem] h-[28rem] bg-neon top-10 right-[-10rem]"></div>
     <div class="relative max-w-4xl mx-auto px-5 sm:px-8">
       <div class="reveal text-center">
-        <p class="font-mono text-sm text-mint mb-3">// 03 — get started</p>
-        <h2 class="text-4xl sm:text-5xl font-bold text-white tracking-tight">Mint your <span class="gradient-text">own instance</span></h2>
-        <p class="mt-5 text-slate-400 text-lg">From clone to edge deployment in ten steps. All you need is a Cloudflare account and <code class="font-mono text-neon text-base">wrangler</code>.</p>
+        <p class="font-mono text-sm text-mint mb-3">// 03 — 開始使用</p>
+        <h2 class="text-4xl sm:text-5xl font-bold text-white tracking-tight">建立你的 <span class="gradient-text">專屬 instance</span></h2>
+        <p class="mt-5 text-slate-400 text-lg">由 clone 到邊緣部署只需九步。你只需要一個 Cloudflare 帳戶和 <code class="font-mono text-neon text-base">wrangler</code>。</p>
       </div>
 
       <div class="mt-14 space-y-6">
-
-        <div class="reveal glass rounded-2xl overflow-hidden">
-          <div class="flex items-center gap-4 px-6 pt-5">
-            <span class="font-mono text-xs text-void bg-plasma rounded-md px-2.5 py-1 font-bold">00</span>
-            <h3 class="text-white font-semibold">Install Wrangler</h3>
-          </div>
-          <div class="p-6 pt-4">
-            <p class="text-sm text-slate-400 mb-3">Install Cloudflare's Workers CLI globally, confirm it is available, then sign in to your Cloudflare account.</p>
-            <div class="relative rounded-xl bg-black/50 border border-white/5 group">
-              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
-              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-600">$</span> <span class="text-slate-200">npm install -g wrangler</span>
-<span class="text-slate-600">$</span> <span class="text-slate-200">wrangler --version</span>
-<span class="text-slate-600">$</span> <span class="text-slate-200">wrangler login</span></code></pre>
-            </div>
-          </div>
-        </div>
 
         <!-- step template -->
         <div class="reveal glass rounded-2xl overflow-hidden">
           <div class="flex items-center gap-4 px-6 pt-5">
             <span class="font-mono text-xs text-void bg-neon rounded-md px-2.5 py-1 font-bold">01</span>
-            <h3 class="text-white font-semibold">Clone the repo &amp; install dependencies</h3>
+            <h3 class="text-white font-semibold">Clone repo 及安裝依賴</h3>
           </div>
           <div class="p-6 pt-4">
-            <p class="text-sm text-slate-400 mb-3">Grab the source from
+            <p class="text-sm text-slate-400 mb-3">由
               <a href="https://github.com/LionRockJS/worker-cms" target="_blank" rel="noopener" class="text-neon underline decoration-neon/40 hover:decoration-neon">LionRockJS/worker-cms</a>,
-              then install.</p>
+              取得原始碼，然後安裝。</p>
             <div class="relative rounded-xl bg-black/50 border border-white/5 group">
-              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">複製</button>
               <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-600">$</span> <span class="text-slate-200">git clone https://github.com/LionRockJS/worker-cms.git</span>
 <span class="text-slate-600">$</span> <span class="text-slate-200">cd worker-cms</span>
 <span class="text-slate-600">$</span> <span class="text-slate-200">npm install</span></code></pre>
@@ -432,12 +413,12 @@
         <div class="reveal glass rounded-2xl overflow-hidden">
           <div class="flex items-center gap-4 px-6 pt-5">
             <span class="font-mono text-xs text-void bg-neon rounded-md px-2.5 py-1 font-bold">02</span>
-            <h3 class="text-white font-semibold">Create the D1 databases</h3>
+            <h3 class="text-white font-semibold">建立 D1 資料庫</h3>
           </div>
           <div class="p-6 pt-4">
-            <p class="text-sm text-slate-400 mb-3">Two isolated stores: <code class="text-plasma">cms</code> for private admin data, <code class="text-mint">cms-published</code> for live content only. Copy the printed <code class="text-neon">database_id</code> values into <code class="text-neon">wrangler.toml</code>.</p>
+            <p class="text-sm text-slate-400 mb-3">兩個隔離資料庫：<code class="text-plasma">cms</code> 存放私有後台資料，<code class="text-mint">cms-published</code> 只存 live content。把輸出的 <code class="text-neon">database_id</code> 複製到 <code class="text-neon">wrangler.toml</code>。</p>
             <div class="relative rounded-xl bg-black/50 border border-white/5 group">
-              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">複製</button>
               <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-600">$</span> <span class="text-slate-200">npx wrangler d1 create cms</span>
 <span class="text-slate-600">$</span> <span class="text-slate-200">npx wrangler d1 create cms-published</span></code></pre>
             </div>
@@ -447,16 +428,14 @@
         <div class="reveal glass rounded-2xl overflow-hidden">
           <div class="flex items-center gap-4 px-6 pt-5">
             <span class="font-mono text-xs text-void bg-neon rounded-md px-2.5 py-1 font-bold">03</span>
-            <h3 class="text-white font-semibold">Run migrations</h3>
+            <h3 class="text-white font-semibold">執行 migrations</h3>
           </div>
           <div class="p-6 pt-4">
-            <p class="text-sm text-slate-400 mb-3">Run the first pair locally, then repeat with <code class="text-neon">--remote</code> for production. Locally, <code class="text-neon">npm run db:migrate</code> applies both.</p>
+            <p class="text-sm text-slate-400 mb-3">正式環境加上 <code class="text-neon">--remote</code>。本機可用 <code class="text-neon">npm run db:migrate</code> 一次套用兩個資料庫。</p>
             <div class="relative rounded-xl bg-black/50 border border-white/5 group">
-              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">複製</button>
               <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-600">$</span> <span class="text-slate-200">npx wrangler d1 migrations apply cms</span>
-<span class="text-slate-600">$</span> <span class="text-slate-200">npx wrangler d1 migrations apply cms-published</span>
-<span class="text-slate-600">$</span> <span class="text-slate-200">npx wrangler d1 migrations apply cms --remote</span>
-<span class="text-slate-600">$</span> <span class="text-slate-200">npx wrangler d1 migrations apply cms-published --remote</span></code></pre>
+<span class="text-slate-600">$</span> <span class="text-slate-200">npx wrangler d1 migrations apply cms-published</span></code></pre>
             </div>
           </div>
         </div>
@@ -464,14 +443,13 @@
         <div class="reveal glass rounded-2xl overflow-hidden">
           <div class="flex items-center gap-4 px-6 pt-5">
             <span class="font-mono text-xs text-void bg-neon rounded-md px-2.5 py-1 font-bold">04</span>
-            <h3 class="text-white font-semibold">Create the private R2 media vault and job queue</h3>
+            <h3 class="text-white font-semibold">建立私有 R2 媒體庫</h3>
           </div>
           <div class="p-6 pt-4">
-            <p class="text-sm text-slate-400 mb-3">The bucket stays private; the Worker serves objects at <code class="text-neon">/media/&lt;key&gt;</code>. The <code class="text-plasma">MEDIA_BUCKET</code> binding ships in <code class="text-neon">wrangler.toml</code>.</p>
+            <p class="text-sm text-slate-400 mb-3">Bucket 保持私有；Worker 會在 <code class="text-neon">/media/&lt;key&gt;</code> 提供物件。<code class="text-plasma">MEDIA_BUCKET</code> binding 已在 <code class="text-neon">wrangler.toml</code> 內設定。</p>
             <div class="relative rounded-xl bg-black/50 border border-white/5 group">
-              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
-              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-600">$</span> <span class="text-slate-200">npx wrangler r2 bucket create worker-cms-media</span>
-<span class="text-slate-600">$</span> <span class="text-slate-200">npx wrangler queues create cms-admin-jobs</span></code></pre>
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">複製</button>
+              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-600">$</span> <span class="text-slate-200">npx wrangler r2 bucket create worker-cms-media</span></code></pre>
             </div>
           </div>
         </div>
@@ -479,14 +457,20 @@
         <div class="reveal glass rounded-2xl overflow-hidden">
           <div class="flex items-center gap-4 px-6 pt-5">
             <span class="font-mono text-xs text-void bg-neon rounded-md px-2.5 py-1 font-bold">05</span>
-            <h3 class="text-white font-semibold">Configure secrets</h3>
+            <h3 class="text-white font-semibold">設定 secrets</h3>
           </div>
           <div class="p-6 pt-4">
-            <p class="text-sm text-slate-400 mb-3">⚠️ The JWT secret must be <span class="text-white font-semibold">at least 32 characters</span> — the Worker refuses to serve in production with a weaker key. Create <code class="text-neon">.dev.vars</code> for local dev.</p>
+            <p class="text-sm text-slate-400 mb-3">⚠️ JWT secret 必須 <span class="text-white font-semibold">至少 32 字元</span> — 若 key 太弱，Worker 在正式環境會拒絕服務。本機開發請建立 <code class="text-neon">.dev.vars</code>。</p>
             <div class="relative rounded-xl bg-black/50 border border-white/5 group">
-              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
-              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-500"># random 32-byte signing key</span>
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">複製</button>
+              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-500"># 隨機 32-byte 簽署 key</span>
 <span class="text-slate-600">$</span> <span class="text-slate-200">openssl rand -hex 32 | npx wrangler secret put JWT_SECRET</span></code></pre>
+            </div>
+            <p class="text-sm text-slate-400 mt-4 mb-3">Plugin secret 是 <span class="text-white font-semibold">逐個插件</span> 管理，不在這裏設定：註冊插件（step ++）時 CMS 會為它建立專屬 secret，因此每個插件都可獨立輪換或撤銷。CMS 全域 <code class="text-neon">PLUGIN_SECRET</code> 現在是 <span class="text-white font-semibold">可選</span> — 只作未有專屬 secret 的插件 fallback。</p>
+            <div class="relative rounded-xl bg-black/50 border border-white/5 group">
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">複製</button>
+              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-500"># 只作可選 CMS 全域 fallback — 逐插件 secret（step ++）會取代它</span>
+<span class="text-slate-600">$</span> <span class="text-slate-200">openssl rand -hex 32 | npx wrangler secret put PLUGIN_SECRET</span></code></pre>
             </div>
           </div>
         </div>
@@ -494,15 +478,15 @@
         <div class="reveal glass rounded-2xl overflow-hidden">
           <div class="flex items-center gap-4 px-6 pt-5">
             <span class="font-mono text-xs text-void bg-neon rounded-md px-2.5 py-1 font-bold">06</span>
-            <h3 class="text-white font-semibold">Enable OAuth providers</h3>
+            <h3 class="text-white font-semibold">啟用 OAuth provider</h3>
           </div>
           <div class="p-6 pt-4">
-            <p class="text-sm text-slate-400 mb-3">Pick your gateways in <code class="text-neon">wrangler.toml</code>, then register an OAuth app with each provider to obtain a <span class="text-white font-semibold">client ID</span> + <span class="text-white font-semibold">client secret</span>. Every provider redirects back to the same callback — your <code class="text-neon">OAUTH_REDIRECT_URI</code>:</p>
+            <p class="text-sm text-slate-400 mb-3">在 <code class="text-neon">wrangler.toml</code> 選好 gateway，然後到每個 provider 註冊 OAuth app，取得 <span class="text-white font-semibold">client ID</span> 及 <span class="text-white font-semibold">client secret</span>。所有 provider 都會導回同一 callback，也就是你的 <code class="text-neon">OAUTH_REDIRECT_URI</code>：</p>
             <div class="relative rounded-xl bg-black/50 border border-white/5 group mb-6">
-              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
-              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-500"># production — must match wrangler.toml exactly</span>
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">複製</button>
+              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-500"># 正式環境 — 必須與 wrangler.toml 完全一致</span>
 <span class="text-mint">https://&lt;your-domain&gt;/auth/callback</span>
-<span class="text-slate-500"># local dev (.dev.vars)</span>
+<span class="text-slate-500"># 本機開發（.dev.vars）</span>
 <span class="text-mint">http://localhost:8787/auth/callback</span></code></pre>
             </div>
 
@@ -513,10 +497,10 @@
                 <h4 class="text-white font-semibold text-sm">GitHub <span class="font-mono text-xs text-slate-500 font-normal">— scopes: read:user, user:email</span></h4>
               </div>
               <ol class="text-sm text-slate-400 leading-relaxed list-decimal pl-5 space-y-1.5">
-                <li>Go to <a href="https://github.com/settings/developers" target="_blank" rel="noopener" class="text-neon underline decoration-neon/40 hover:decoration-neon">github.com/settings/developers</a> → <span class="text-slate-200">OAuth Apps</span> → <span class="text-slate-200">New OAuth App</span>. <span class="text-slate-500">(For an org-owned app, use <em>Settings → Developer settings</em> under the org instead.)</span></li>
-                <li>Set <span class="text-slate-200">Homepage URL</span> to your domain and <span class="text-slate-200">Authorization callback URL</span> to <code class="text-mint">https://&lt;your-domain&gt;/auth/callback</code>.</li>
-                <li>Click <span class="text-slate-200">Register application</span>. Copy the <code class="text-neon">Client ID</code>.</li>
-                <li>Click <span class="text-slate-200">Generate a new client secret</span> and copy it immediately — GitHub shows it only once.</li>
+                <li>前往 <a href="https://github.com/settings/developers" target="_blank" rel="noopener" class="text-neon underline decoration-neon/40 hover:decoration-neon">github.com/settings/developers</a> → <span class="text-slate-200">OAuth Apps</span> → <span class="text-slate-200">New OAuth App</span>. <span class="text-slate-500">（如為 org-owned app，請到該 org 的 <em>Settings → Developer settings</em>。）</span></li>
+                <li>把 <span class="text-slate-200">Homepage URL</span> 設為你的 domain，並把 <span class="text-slate-200">Authorization callback URL</span> 設為 <code class="text-mint">https://&lt;your-domain&gt;/auth/callback</code>。</li>
+                <li>按 <span class="text-slate-200">Register application</span>，複製 <code class="text-neon">Client ID</code>。</li>
+                <li>按 <span class="text-slate-200">Generate a new client secret</span> 並即時複製 — GitHub 只會顯示一次。</li>
               </ol>
             </div>
 
@@ -527,17 +511,17 @@
                 <h4 class="text-white font-semibold text-sm">Google <span class="font-mono text-xs text-slate-500 font-normal">— scopes: openid, email, profile</span></h4>
               </div>
               <ol class="text-sm text-slate-400 leading-relaxed list-decimal pl-5 space-y-1.5">
-                <li>Open <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener" class="text-neon underline decoration-neon/40 hover:decoration-neon">console.cloud.google.com/apis/credentials</a> and select (or create) a project.</li>
-                <li>Configure the <span class="text-slate-200">OAuth consent screen</span> first — pick <span class="text-slate-200">External</span>, fill in app name + support email. Add your email under <span class="text-slate-200">Test users</span> while the app is unpublished.</li>
-                <li>Go to <span class="text-slate-200">Credentials</span> → <span class="text-slate-200">Create Credentials</span> → <span class="text-slate-200">OAuth client ID</span> → application type <span class="text-slate-200">Web application</span>.</li>
-                <li>Under <span class="text-slate-200">Authorized redirect URIs</span> add <code class="text-mint">https://&lt;your-domain&gt;/auth/callback</code> (and the localhost URI for dev).</li>
-                <li>Click <span class="text-slate-200">Create</span>, then copy the <code class="text-neon">Client ID</code> and <code class="text-neon">Client secret</code>.</li>
+                <li>打開 <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener" class="text-neon underline decoration-neon/40 hover:decoration-neon">console.cloud.google.com/apis/credentials</a> 並選擇（或建立）project。</li>
+                <li>先設定 <span class="text-slate-200">OAuth consent screen</span> — 選 <span class="text-slate-200">External</span>，填入 app 名稱及支援電郵。App 未公開前，請在 <span class="text-slate-200">Test users</span> 加入你的電郵。</li>
+                <li>前往 <span class="text-slate-200">Credentials</span> → <span class="text-slate-200">Create Credentials</span> → <span class="text-slate-200">OAuth client ID</span> → application type <span class="text-slate-200">Web application</span>.</li>
+                <li>在 <span class="text-slate-200">Authorized redirect URIs</span> 加入 <code class="text-mint">https://&lt;your-domain&gt;/auth/callback</code>（開發用 localhost URI 也一併加入）。</li>
+                <li>按 <span class="text-slate-200">Create</span>，然後複製 <code class="text-neon">Client ID</code> 及 <code class="text-neon">Client secret</code>。</li>
               </ol>
             </div>
 
-            <p class="text-sm text-slate-400 mb-3">List the gateways you registered and drop each <span class="text-white font-semibold">client ID</span> into <code class="text-neon">wrangler.toml</code>. Set <code class="text-neon">CANONICAL_ORIGIN</code> to your own domain too — the Worker enforces the canonical host and otherwise redirects to its default origin:</p>
+            <p class="text-sm text-slate-400 mb-3">列出已註冊的 gateway，並把各自的 <span class="text-white font-semibold">client ID</span> 放入 <code class="text-neon">wrangler.toml</code>。同時把 <code class="text-neon">CANONICAL_ORIGIN</code> 設為你的 domain — Worker 會強制使用 canonical host，否則導向預設 origin：</p>
             <div class="relative rounded-xl bg-black/50 border border-white/5 group">
-              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">複製</button>
               <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-600">[vars]</span>
 <span class="text-plasma">ENABLED_PROVIDERS</span> <span class="text-slate-500">=</span> <span class="text-mint">"eventuai,github,google"</span>
 <span class="text-plasma">GITHUB_CLIENT_ID</span>     <span class="text-slate-500">=</span> <span class="text-mint">"&lt;github-client-id&gt;"</span>
@@ -545,15 +529,15 @@
 <span class="text-plasma">OAUTH_REDIRECT_URI</span>   <span class="text-slate-500">=</span> <span class="text-mint">"https://&lt;your-domain&gt;/auth/callback"</span>
 <span class="text-plasma">CANONICAL_ORIGIN</span>     <span class="text-slate-500">=</span> <span class="text-mint">"https://&lt;your-domain&gt;"</span></code></pre>
             </div>
-            <p class="text-sm text-slate-400 mt-4 mb-3">Then push the matching <span class="text-white font-semibold">client secrets</span> as encrypted secrets (never commit them). Run each command and paste the value at the prompt:</p>
+            <p class="text-sm text-slate-400 mt-4 mb-3">然後把對應的 <span class="text-white font-semibold">client secrets</span> 以加密 secrets 上傳（切勿 commit）。逐條指令執行，並在提示時貼上值：</p>
             <div class="relative rounded-xl bg-black/50 border border-white/5 group">
-              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">複製</button>
               <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-600">$</span> <span class="text-slate-200">npx wrangler secret put GITHUB_CLIENT_SECRET</span>
 <span class="text-slate-600">$</span> <span class="text-slate-200">npx wrangler secret put GOOGLE_CLIENT_SECRET</span></code></pre>
             </div>
-            <p class="text-sm text-slate-400 mt-4 mb-3">Prefer a one-liner? Pipe the value in on stdin — but note it lands in your shell history (lead with a space, or use <code class="text-neon">&lt; secret.txt</code> instead):</p>
+            <p class="text-sm text-slate-400 mt-4 mb-3">想一行完成？可用 stdin pipe 入值 — 但要留意它會進入 shell history（可在前面加空格，或改用 <code class="text-neon">&lt; secret.txt</code>）：</p>
             <div class="relative rounded-xl bg-black/50 border border-white/5 group">
-              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">複製</button>
               <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-600">$</span> <span class="text-slate-200">echo -n </span><span class="text-mint">your_github_secret</span><span class="text-slate-200"> | npx wrangler secret put GITHUB_CLIENT_SECRET</span></code></pre>
             </div>
           </div>
@@ -562,11 +546,11 @@
         <div class="reveal glass rounded-2xl overflow-hidden">
           <div class="flex items-center gap-4 px-6 pt-5">
             <span class="font-mono text-xs text-void bg-mint rounded-md px-2.5 py-1 font-bold">07</span>
-            <h3 class="text-white font-semibold">Run locally</h3>
+            <h3 class="text-white font-semibold">本機執行</h3>
           </div>
           <div class="p-6 pt-4">
             <div class="relative rounded-xl bg-black/50 border border-white/5 group">
-              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">複製</button>
               <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-600">$</span> <span class="text-slate-200">npm run dev</span>
 <span class="text-slate-500"># → http://localhost:8787</span></code></pre>
             </div>
@@ -576,11 +560,11 @@
         <div class="reveal glass rounded-2xl overflow-hidden border-mint/30" style="border-color: rgba(52, 211, 153, 0.3);">
           <div class="flex items-center gap-4 px-6 pt-5">
             <span class="font-mono text-xs text-void bg-mint rounded-md px-2.5 py-1 font-bold">08</span>
-            <h3 class="text-white font-semibold">Ship to the edge 🚀</h3>
+            <h3 class="text-white font-semibold">部署到邊緣 🚀</h3>
           </div>
           <div class="p-6 pt-4">
             <div class="relative rounded-xl bg-black/50 border border-white/5 group">
-              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">複製</button>
               <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-600">$</span> <span class="text-slate-200">npm run deploy</span></code></pre>
             </div>
           </div>
@@ -589,40 +573,40 @@
         <div class="reveal glass rounded-2xl overflow-hidden">
           <div class="flex items-center gap-4 px-6 pt-5">
             <span class="font-mono text-xs text-void bg-mint rounded-md px-2.5 py-1 font-bold">09</span>
-            <h3 class="text-white font-semibold">Sign in, then grant yourself admin</h3>
+            <h3 class="text-white font-semibold">登入，然後授予自己 admin 權限</h3>
           </div>
           <div class="p-6 pt-4">
-            <p class="text-sm text-slate-400 mb-3">Your account only exists after you log in. With the app running — locally or on the edge — open <code class="text-neon">/auth/login</code> and sign in once through any provider to create your user row, then promote it. Roles are a comma-separated list.</p>
+            <p class="text-sm text-slate-400 mb-3">你的帳戶會在首次登入後才建立。當 app 在本機或邊緣運行時，打開 <code class="text-neon">/auth/login</code> 並透過任一 provider 登入一次以建立 user row，然後提升權限。Roles 以逗號分隔。</p>
             <div class="relative rounded-xl bg-black/50 border border-white/5 group">
-              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
-              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-500"># production DB — after you signed in on the deployed site</span>
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">複製</button>
+              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-500"># 正式 DB — 在已部署網站登入後執行</span>
 <span class="text-slate-600">$</span> <span class="text-slate-200">npx wrangler d1 execute cms --remote \
     --command </span><span class="text-mint">"UPDATE users SET role='admin' WHERE email='you@example.com'"</span></code></pre>
             </div>
-            <p class="text-sm text-slate-400 mt-4 mb-3">Testing on <code class="text-neon">localhost:8787</code>? Drop <code class="text-neon">--remote</code> to hit the local DB, then sign out and back in so the new role lands in your token.</p>
+            <p class="text-sm text-slate-400 mt-4 mb-3">在 <code class="text-neon">localhost:8787</code> 測試？移除 <code class="text-neon">--remote</code> 以操作本機 DB，然後登出再登入，讓新角色寫入 token。</p>
             <div class="relative rounded-xl bg-black/50 border border-white/5 group">
-              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">複製</button>
               <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-600">$</span> <span class="text-slate-200">npx wrangler d1 execute cms \
     --command </span><span class="text-mint">"UPDATE users SET role='admin' WHERE email='you@example.com'"</span></code></pre>
             </div>
           </div>
         </div>
 
-        <!-- optional: extra publish targets -->
+        <!-- optional: extra 發佈目標 -->
         <div class="reveal glass rounded-2xl overflow-hidden">
           <div class="flex items-center gap-4 px-6 pt-5">
             <span class="font-mono text-xs text-void bg-plasma rounded-md px-2.5 py-1 font-bold">++</span>
-            <h3 class="text-white font-semibold">Optional: fan out to more publish targets</h3>
+            <h3 class="text-white font-semibold">Optional: fan out to more 發佈目標</h3>
           </div>
           <div class="p-6 pt-4">
-            <p class="text-sm text-slate-400 mb-3">Publishing defaults to the <code class="text-mint">d1</code> target. Add <code class="text-mint">r2</code> for static JSON snapshots in a bucket:</p>
+            <p class="text-sm text-slate-400 mb-3">發佈預設使用 <code class="text-mint">d1</code> 目標。加入 <code class="text-mint">r2</code> 可把靜態 JSON snapshot 放入 bucket：</p>
             <div class="relative rounded-xl bg-black/50 border border-white/5 group">
-              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">複製</button>
               <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-600">$</span> <span class="text-slate-200">npx wrangler r2 bucket create worker-cms-published</span></code></pre>
             </div>
             <div class="relative rounded-xl bg-black/50 border border-white/5 group mt-3">
-              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
-              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-500"># wrangler.toml — bind the bucket, then enable the target</span>
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">複製</button>
+              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-500"># wrangler.toml — 綁定 bucket，然後啟用目標</span>
 <span class="text-slate-600">[[r2_buckets]]</span>
 <span class="text-plasma">binding</span> <span class="text-slate-500">=</span> <span class="text-mint">"PUBLISH_BUCKET"</span>
 <span class="text-plasma">bucket_name</span> <span class="text-slate-500">=</span> <span class="text-mint">"worker-cms-published"</span>
@@ -630,21 +614,21 @@
 <span class="text-slate-600">[vars]</span>
 <span class="text-plasma">PUBLISH_TARGETS</span> <span class="text-slate-500">=</span> <span class="text-mint">"d1,r2"</span></code></pre>
             </div>
-            <p class="text-sm text-slate-400 mt-5 mb-3">For everything else, publish targets are plugin Workers. Two are ready to deploy —
+            <p class="text-sm text-slate-400 mt-5 mb-3">For everything else, 發佈目標 are plugin Workers. Two are ready to deploy —
               <a href="https://github.com/zeroxcms/plugin-publish-ipfs" target="_blank" rel="noopener" class="text-neon underline decoration-neon/40 hover:decoration-neon">plugin-publish-ipfs</a>
-              (pins pages to IPFS via Pinata) and
+              （透過 Pinata 把頁面 pin 到 IPFS）及
               <a href="https://github.com/zeroxcms/plugin-publish-webhook" target="_blank" rel="noopener" class="text-neon underline decoration-neon/40 hover:decoration-neon">plugin-publish-webhook</a>
-              (HMAC-signed webhooks for search indexers, rebuilds, deploy hooks) — or write your own: any Worker whose manifest declares <code class="text-plasma">publishTarget: true</code>.</p>
+              （以 HMAC 簽署 webhook，供搜尋索引、重建、部署 hook 使用）— 或自己編寫：任何 manifest 宣告 <code class="text-plasma">publishTarget: true</code> 的 Worker 都可以。</p>
             <div class="relative rounded-xl bg-black/50 border border-white/5 group">
-              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
-              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-500"># 1 · deploy the plugin Worker and note its URL</span>
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">複製</button>
+              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-500"># 1 · 部署插件 Worker 並記下 URL</span>
 <span class="text-slate-600">$</span> <span class="text-slate-200">git clone https://github.com/zeroxcms/plugin-publish-ipfs &amp;&amp; cd plugin-publish-ipfs</span>
 <span class="text-slate-600">$</span> <span class="text-slate-200">npm install &amp;&amp; npx wrangler deploy</span></code></pre>
             </div>
-            <p class="text-sm text-slate-400 mt-4 mb-3">Then in the CMS admin open <code class="text-neon">/admin/plugins-manage</code> → <span class="text-slate-200">Register plugin</span> and paste the Worker's URL. <span class="text-white font-semibold">No CMS redeploy, no service bindings</span> — the manifest (with <code class="text-plasma">publishTarget: true</code>) is auto-discovered over HTTPS. The CMS mints a <span class="text-white font-semibold">dedicated secret</span> for that plugin; copy it from <span class="text-slate-200">Plugins → Edit</span> onto the plugin Worker, then redeploy:</p>
+            <p class="text-sm text-slate-400 mt-4 mb-3">然後在 CMS 後台打開 <code class="text-neon">/admin/plugins-manage</code> → <span class="text-slate-200">Register plugin</span>，貼上 Worker URL。<span class="text-white font-semibold">不用重新部署 CMS，亦不用 service binding</span> — manifest（含 <code class="text-plasma">publishTarget: true</code>）會透過 HTTPS 自動發現。CMS 會為該插件建立 <span class="text-white font-semibold">專屬 secret</span>；到 <span class="text-slate-200">Plugins → Edit</span> 複製到插件 Worker，然後重新部署：</p>
             <div class="relative rounded-xl bg-black/50 border border-white/5 group">
-              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">copy</button>
-              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-500"># 2 · paste the per-plugin secret shown in Admin → Plugins → Edit</span>
+              <button class="copy-btn absolute top-2.5 right-2.5 font-mono text-[11px] px-2.5 py-1 rounded-md bg-white/5 text-slate-400 hover:text-neon hover:bg-neon/10 transition-colors">複製</button>
+              <pre class="p-4 overflow-x-auto text-sm"><code><span class="text-slate-500"># 2 · 貼上 Admin → Plugins → Edit 顯示的逐插件 secret</span>
 <span class="text-slate-600">$</span> <span class="text-slate-200">npx wrangler secret put PLUGIN_SECRET</span>
 <span class="text-slate-600">$</span> <span class="text-slate-200">npx wrangler deploy</span></code></pre>
             </div>
@@ -659,14 +643,14 @@
     <div class="glow-orb w-[30rem] h-[30rem] bg-plasma bottom-0 left-1/2 -translate-x-1/2"></div>
     <div class="relative max-w-3xl mx-auto px-5 sm:px-8 text-center">
       <div class="reveal glass rounded-3xl px-8 py-14 sm:px-14">
-        <p class="font-mono text-sm text-neon mb-4">// ready when you are</p>
+        <p class="font-mono text-sm text-neon mb-4">// 準備好就開始</p>
         <h2 class="text-4xl sm:text-5xl font-bold text-white tracking-tight leading-tight">
-          Don't trust.<br/><span class="gradient-text">Verify it yourself.</span>
+          不用盲信。<br/><span class="gradient-text">親自驗證。</span>
         </h2>
-        <p class="mt-5 text-slate-400 text-lg">The live instance is running on the edge right now.</p>
+        <p class="mt-5 text-slate-400 text-lg">Live instance 此刻已在邊緣運行。</p>
         <a href="https://cms.eventuai.com" target="_blank" rel="noopener"
            class="neon-btn inline-block mt-9 px-10 py-4 rounded-xl bg-gradient-to-r from-neon/20 to-plasma/20 border border-neon/60 text-white font-bold font-mono text-lg">
-          Launch 0xCMS ↗
+          開啟 0xCMS ↗
         </a>
         <p class="mt-4 font-mono text-xs text-slate-600">cms.eventuai.com</p>
       </div>
@@ -678,22 +662,22 @@
     <div class="max-w-7xl mx-auto px-5 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs text-slate-600">
       <div class="flex items-center gap-2">
         <span class="text-neon font-bold">0xCMS</span>
-        <span>— content management, edge-native.</span>
+        <span>— 邊緣原生內容管理。</span>
       </div>
       <div class="flex items-center gap-6">
-        <a href="#features" class="hover:text-neon transition-colors">features</a>
-        <a href="features.html" class="hover:text-neon transition-colors">all features</a>
-        <a href="page.html" class="hover:text-neon transition-colors">data model</a>
-        <a href="cms-update.html" class="hover:text-neon transition-colors">updates</a>
-        <a href="#get-started" class="hover:text-neon transition-colors">docs</a>
+        <a href="#features" class="hover:text-neon transition-colors">功能</a>
+        <a href="features.html" class="hover:text-neon transition-colors">完整功能</a>
+        <a href="page.html" class="hover:text-neon transition-colors">資料模型</a>
+        <a href="cms-update.html" class="hover:text-neon transition-colors">更新</a>
+        <a href="#get-started" class="hover:text-neon transition-colors">文件</a>
         <a href="https://cms.eventuai.com" target="_blank" rel="noopener" class="hover:text-neon transition-colors">app ↗</a>
       </div>
-      <div>built on <span class="text-plasma">Cloudflare Workers</span> ⚡</div>
+      <div>建基於 <span class="text-plasma">Cloudflare Workers</span> ⚡</div>
     </div>
   </footer>
 
-  <script src="app.js"></script>
+  <script src="../app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
-  <script src="webgl-bg.js"></script>
+  <script src="../webgl-bg.js"></script>
 </body>
 </html>

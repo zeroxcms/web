@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>0xCMS — Full Feature List</title>
+  <meta name="description" content="The complete, detailed feature list for 0xCMS: OAuth 2.1 auth, capability-based RBAC, structured multilingual content, page versioning, real-time CRDT co-editing, adapter-based publishing, plugin auto-republish, taxonomy, advanced search with queued bulk actions, private R2 media, CSV import/export, runtime page & block types, trash, a full Worker plugin system with a write-back API, plugin credit billing & quota limits, and runtime system settings." />
+  <link rel="alternate" hreflang="en" href="features.html" />
+  <link rel="alternate" hreflang="zh-HK" href="zh-hk/features.html" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            void: '#05010f',
+            panel: '#0b0620',
+            neon: '#22d3ee',
+            plasma: '#a855f7',
+            mint: '#34d399',
+          },
+          fontFamily: {
+            mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+            sans: ['"Space Grotesk"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet" />
+  <style>
+    body { background-color: #05010f; }
+
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(168, 85, 247, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34, 211, 238, 0.07) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+    }
+
+    .glow-orb {
+      position: absolute;
+      border-radius: 9999px;
+      filter: blur(110px);
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    .gradient-text {
+      background: linear-gradient(100deg, #22d3ee 0%, #a855f7 50%, #34d399 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .glass {
+      background: rgba(15, 8, 36, 0.55);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(168, 85, 247, 0.18);
+    }
+
+    .glass-hover { transition: border-color .3s, transform .3s, box-shadow .3s; }
+    .glass-hover:hover {
+      border-color: rgba(34, 211, 238, 0.45);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px -12px rgba(34, 211, 238, 0.25);
+    }
+
+    .neon-btn {
+      box-shadow: 0 0 24px rgba(34, 211, 238, 0.35), inset 0 0 12px rgba(34, 211, 238, 0.15);
+      transition: box-shadow .3s, transform .2s;
+    }
+    .neon-btn:hover {
+      box-shadow: 0 0 44px rgba(34, 211, 238, 0.6), inset 0 0 18px rgba(34, 211, 238, 0.25);
+      transform: translateY(-2px);
+    }
+
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity .7s ease, transform .7s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    .tick { color: #34d399; }
+
+    pre code { font-family: 'JetBrains Mono', monospace; }
+    code { font-family: 'JetBrains Mono', monospace; }
+
+    ::selection { background: rgba(168, 85, 247, 0.45); color: #fff; }
+
+    html { scrollbar-color: #4c1d95 #05010f; }
+    html, body { overflow-x: hidden; }
+
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    /* Feature list bullets */
+    .feat-list > li {
+      position: relative;
+      padding-left: 1.4rem;
+    }
+    .feat-list > li::before {
+      content: '▸';
+      position: absolute;
+      left: 0;
+      color: #22d3ee;
+      opacity: 0.7;
+    }
+    .kbd {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      padding: 0.05rem 0.4rem;
+      border-radius: 0.35rem;
+      background: rgba(34, 211, 238, 0.08);
+      border: 1px solid rgba(34, 211, 238, 0.2);
+      color: rgba(34, 211, 238, 0.9);
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body class="font-sans text-slate-300 antialiased overflow-x-hidden">
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+  <!-- ───────────────────────── NAV ───────────────────────── -->
+  <header id="navbar" class="fixed top-0 inset-x-0 z-50 transition-all duration-300">
+    <nav class="max-w-7xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-2.5 group">
+        <span class="relative grid place-items-center w-9 h-9 rounded-lg bg-gradient-to-br from-neon/20 to-plasma/20 border border-plasma/40">
+          <span class="font-mono font-bold text-neon text-sm">0x</span>
+          <span aria-hidden="true" class="absolute -inset-px rounded-lg border border-neon/0 group-hover:border-neon/50 transition-colors">&nbsp;</span>
+        </span>
+        <span class="font-mono font-bold text-lg text-white tracking-tight">0x<span class="gradient-text">CMS</span></span>
+      </a>
+
+      <div class="hidden md:flex items-center gap-8 font-mono text-sm">
+        <a href="index.html#features" class="text-slate-400 hover:text-neon transition-colors">/overview</a>
+        <a href="features.html" class="text-neon transition-colors">/features</a>
+        <a href="index.html#architecture" class="text-slate-400 hover:text-neon transition-colors">/architecture</a>
+        <a href="page.html" class="text-slate-400 hover:text-neon transition-colors">/data-model</a>
+        <a href="cms-update.html" class="text-slate-400 hover:text-neon transition-colors">/updates</a>
+        <a href="zh-hk/features.html" hreflang="zh-HK" class="text-slate-400 hover:text-neon transition-colors">繁中</a>
+        <a href="https://cms.eventuai.com" target="_blank" rel="noopener"
+           class="neon-btn px-5 py-2 rounded-lg bg-neon/10 border border-neon/50 text-neon font-semibold">
+          Launch App ↗
+        </a>
+      </div>
+
+      <button id="menu-btn" class="md:hidden text-slate-300 p-2" aria-label="Toggle menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </nav>
+
+    <div id="mobile-menu" class="hidden md:hidden glass mx-4 rounded-xl p-4 flex flex-col gap-3 font-mono text-sm">
+      <a href="index.html#features" class="text-slate-300 hover:text-neon py-1">/overview</a>
+      <a href="features.html" class="text-neon py-1">/features</a>
+      <a href="index.html#architecture" class="text-slate-300 hover:text-neon py-1">/architecture</a>
+      <a href="page.html" class="text-slate-300 hover:text-neon py-1">/data-model</a>
+      <a href="cms-update.html" class="text-slate-300 hover:text-neon py-1">/updates</a>
+      <a href="zh-hk/features.html" hreflang="zh-HK" class="text-slate-300 hover:text-neon py-1">繁中</a>
+      <a href="https://cms.eventuai.com" target="_blank" rel="noopener" class="text-neon font-semibold py-1">Launch App ↗</a>
+    </div>
+  </header>
+
+  <!-- ───────────────────────── HERO ───────────────────────── -->
+  <section class="relative pt-36 pb-16">
+    <div class="grid-bg absolute inset-0"></div>
+    <div class="glow-orb w-[34rem] h-[34rem] bg-plasma top-[-8rem] left-[-10rem]"></div>
+    <div class="glow-orb w-[30rem] h-[30rem] bg-neon top-[2rem] right-[-8rem]"></div>
+
+    <div class="relative max-w-5xl mx-auto px-5 sm:px-8 text-center">
+      <p class="font-mono text-sm text-neon mb-4">// the complete manifest</p>
+      <h1 class="text-4xl sm:text-6xl font-bold text-white tracking-tight leading-tight">
+        Every feature in <span class="gradient-text">0xCMS</span>
+      </h1>
+      <p class="mt-6 text-slate-400 text-lg max-w-2xl mx-auto">
+        A detailed, no-hand-waving inventory of what ships in the Worker — read straight from the source.
+        Authentication, capability-based access control, structured multilingual content, versioning, real-time
+        co-editing, adapter-based publishing, plugin auto-republish, taxonomy, advanced search with queued bulk actions,
+        private media, bulk import/export, runtime-editable schemas, trash, a full plugin platform with credit billing &amp; quota limits, and
+        runtime system settings — each section tagged with the size of the source that implements it.
+      </p>
+      <div class="mt-9 flex flex-wrap items-center justify-center gap-3 font-mono text-xs">
+        <span class="kbd">Cloudflare Workers</span>
+        <span class="kbd">Hono</span>
+        <span class="kbd">D1 × 2</span>
+        <span class="kbd">R2</span>
+        <span class="kbd">Durable Objects</span>
+        <span class="kbd">Queues</span>
+        <span class="kbd">Liquid views</span>
+        <span class="kbd">Web Crypto JWT</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── TABLE OF CONTENTS ───────────────────────── -->
+  <section class="relative pb-8">
+    <div class="relative max-w-6xl mx-auto px-5 sm:px-8">
+      <div class="reveal glass rounded-2xl p-6 sm:p-8">
+        <p class="font-mono text-sm text-plasma mb-4">// contents · four groups</p>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-6 font-mono text-sm">
+          <div>
+            <p class="text-xs text-mint mb-2">Ⅰ · Content authoring</p>
+            <div class="flex flex-col gap-1.5">
+              <a href="#content" class="text-slate-400 hover:text-neon transition-colors">01 · Content model</a>
+              <a href="#editor" class="text-slate-400 hover:text-neon transition-colors">02 · Page editor</a>
+              <a href="#versioning" class="text-slate-400 hover:text-neon transition-colors">03 · Versioning &amp; history</a>
+              <a href="#realtime" class="text-slate-400 hover:text-neon transition-colors">04 · Real-time co-editing</a>
+            </div>
+          </div>
+          <div>
+            <p class="text-xs text-plasma mb-2">Ⅱ · Managing &amp; publishing</p>
+            <div class="flex flex-col gap-1.5">
+              <a href="#publish" class="text-slate-400 hover:text-neon transition-colors">05 · Publishing</a>
+              <a href="#taxonomy" class="text-slate-400 hover:text-neon transition-colors">06 · Taxonomy &amp; tags</a>
+              <a href="#search" class="text-slate-400 hover:text-neon transition-colors">07 · Search</a>
+              <a href="#media" class="text-slate-400 hover:text-neon transition-colors">08 · Media</a>
+              <a href="#importexport" class="text-slate-400 hover:text-neon transition-colors">09 · Import &amp; export</a>
+              <a href="#schema" class="text-slate-400 hover:text-neon transition-colors">10 · Runtime page/block types</a>
+              <a href="#trash" class="text-slate-400 hover:text-neon transition-colors">11 · Trash &amp; recovery</a>
+            </div>
+          </div>
+          <div>
+            <p class="text-xs text-neon mb-2">Ⅲ · Access &amp; identity</p>
+            <div class="flex flex-col gap-1.5">
+              <a href="#auth" class="text-slate-400 hover:text-neon transition-colors">12 · Authentication &amp; identity</a>
+              <a href="#rbac" class="text-slate-400 hover:text-neon transition-colors">13 · Access control &amp; permissions</a>
+            </div>
+          </div>
+          <div>
+            <p class="text-xs text-neon mb-2">Ⅳ · Platform &amp; extensibility</p>
+            <div class="flex flex-col gap-1.5">
+              <a href="#plugins" class="text-slate-400 hover:text-neon transition-colors">14 · Plugin system</a>
+              <a href="#writeback" class="text-slate-400 hover:text-neon transition-colors">15 · Plugin write-back API</a>
+              <a href="#credits" class="text-slate-400 hover:text-neon transition-colors">16 · Credits &amp; quota limits</a>
+              <a href="#adminux" class="text-slate-400 hover:text-neon transition-colors">17 · Admin experience</a>
+              <a href="#settings" class="text-slate-400 hover:text-neon transition-colors">18 · System settings &amp; branding</a>
+              <a href="#security" class="text-slate-400 hover:text-neon transition-colors">19 · Security hardening</a>
+              <a href="#infra" class="text-slate-400 hover:text-neon transition-colors">20 · Data &amp; infrastructure</a>
+              <a href="#ops" class="text-slate-400 hover:text-neon transition-colors">21 · Background jobs &amp; ops</a>
+            </div>
+          </div>
+        </div>
+        <p class="mt-6 font-mono text-xs text-slate-500">// every section is tagged with the size of the source implementing it — ≈723 kB of worker TypeScript + SQL, plus ≈481 kB of admin views &amp; client assets (incl. a 115 kB vendored Liquid engine). Shared files are counted once, under their primary section.</p>
+      </div>
+    </div>
+  </section>
+
+  <main class="relative max-w-6xl mx-auto px-5 sm:px-8 pb-24 space-y-8">
+
+    <!-- ═══════════ GROUP Ⅰ ═══════════ -->
+    <div class="reveal pt-2">
+      <p class="font-mono text-xs text-mint mb-2">// group 1 / 4</p>
+      <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Ⅰ · Content authoring</h2>
+      <p class="mt-2 max-w-3xl text-slate-400">The editorial surface — how content is modeled, edited, versioned, and co-edited live.</p>
+      <div class="mt-5 h-px bg-gradient-to-r from-mint/50 via-neon/25 to-transparent"></div>
+    </div>
+
+    <!-- 01 · CONTENT MODEL -->
+    <section id="content" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-mint/10 border border-mint/30 grid place-items-center text-lg">🧬</div>
+        <div>
+          <p class="font-mono text-xs text-mint mb-1">// 01</p>
+          <h2 class="text-2xl font-bold text-white">Content model</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="27 kB worker + 25 kB field-snippet views">worker 27 kB · views 25 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">"Lect" structured content</b> — every page's body is a JSON document with a defined shape: localized fields, scalar attributes (<code>@</code>), page-reference pointers (<code>*</code>), repeatable <b>items</b>, reusable <b>blocks</b> (<code>_blocks</code>), and <b>tags</b> (<code>_tags</code>). Metadata like <code>_type</code>, <code>_modifier</code>, and <code>_pointers</code> live alongside.</li>
+        <li><b class="text-white">Blueprint-driven schema</b> — page types are declared as blueprints (a mix of field strings and nested item maps); the editor form, search paths, and CSV headers are all derived from the same blueprint.</li>
+        <li><b class="text-white">Built-in multilingual support</b> — default language set (<code>mis</code>, <code>en</code>, <code>zh-hant</code>, <code>zh-hans</code>) with per-field localized values; language is chosen per request and threaded through save/reload.</li>
+        <li><b class="text-white">18 field types</b> rendered from Liquid snippets: <code>text</code>, <code>textarea</code>, <code>richtext</code>, <code>number</code>, <code>boolean</code>, <code>switch</code>, <code>checkbox</code>, <code>radio</code>, <code>select</code>, <code>date</code>, <code>time</code>, <code>color</code>, <code>email</code>, <code>tel</code>, <code>url</code>, <code>link</code>, <code>page</code> (page-reference combobox), and <code>picture</code>.</li>
+        <li><b class="text-white">Page-reference fields</b> — a searchable combobox backed by a JSON API to link one page to another (by type, filtered by name/slug).</li>
+        <li><b class="text-white">Page hierarchy</b> — pages can have a parent (<code>page_id</code>), forming trees; parent options are searchable.</li>
+        <li><b class="text-white">Scheduling window &amp; timezone</b> — every page carries optional <code>start</code>/<code>end</code> timestamps with a timezone (UTC offset or IANA name; default configurable via <code>DEFAULT_TIMEZONE</code>).</li>
+        <li><b class="text-white">Weight ordering</b> — manual sort weight per page, editable inline and via a batch endpoint.</li>
+        <li><b class="text-white">Legacy-format normalization</b> — older "structured" JSON shapes are auto-migrated to the current lect model on read.</li>
+        <li><b class="text-white">Lect merge semantics</b> — blueprint defaults ← stored content ← incoming partial, so API callers and importers can send only the fields they changed.</li>
+      </ul>
+    </section>
+
+    <!-- 02 · EDITOR -->
+    <section id="editor" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-neon/10 border border-neon/30 grid place-items-center text-lg">✍️</div>
+        <div>
+          <p class="font-mono text-xs text-neon mb-1">// 02</p>
+          <h2 class="text-2xl font-bold text-white">Page editor</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="97 kB worker + 47 kB views">worker 97 kB · views 47 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">Structured editor UI</b> — a Tailwind + vanilla-JS admin form that renders each blueprint field, item list, and block list, with an inline HTML toolbar for rich text.</li>
+        <li><b class="text-white">Full page CRUD</b> — create (blank or <code>create_by_type</code>), edit, update, and soft-delete, with slug auto-generation and guaranteed-unique slugs.</li>
+        <li><b class="text-white">In-editor structured actions</b> — add/remove/reorder items and blocks without leaving the page (server applies the structured action and re-renders).</li>
+        <li><b class="text-white">Server-side validation</b> re-renders the form with a <code>422</code> and error list while preserving entered values.</li>
+        <li><b class="text-white">Plugin edit views</b> — a plugin can take over the entire edit/new form for the page types it owns; the CMS POSTs the editor context to the plugin and wraps the returned HTML fragment in admin chrome. Its form posts back to the normal CMS save handler, so versioning/publish are unchanged.</li>
+        <li><b class="text-white">Graceful fallback</b> — if a plugin edit view returns 404 or any error, the built-in editor is used, so a half-built plugin can never lock an editor out of a page.</li>
+        <li><b class="text-white">Native-editor escape hatch</b> — append <span class="kbd">?native=1</span> (or <code>?editor=cms</code>) to force the built-in editor for a page a plugin would otherwise render; the flag survives validation errors and post-save reloads.</li>
+        <li><b class="text-white">Return-path preservation</b> — the editor remembers where you came from (e.g. a plugin dashboard) across saves, so Back/Cancel still point there.</li>
+        <li><b class="text-white">Read-only page view</b> — <code>/pages/:id/read</code> renders the same structured content as static text (no inputs, no CRDT, no presence), safe for reviewing a page without any risk of accidental edits; a plugin that owns the page type can render this view too, with the same <span class="kbd">?native=1</span> fallback.</li>
+        <li><b class="text-white">Privacy table view</b> — page types with email/phone/mobile/fax fields get a privacy-aware list rendering with client-side masking for sensitive contact columns.</li>
+        <li><b class="text-white">Modifier attribution</b> — the last editor's name is resolved and shown.</li>
+      </ul>
+    </section>
+
+    <!-- 03 · VERSIONING -->
+    <section id="versioning" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-plasma/10 border border-plasma/30 grid place-items-center text-lg">🗂️</div>
+        <div>
+          <p class="font-mono text-xs text-plasma mb-1">// 03</p>
+          <h2 class="text-2xl font-bold text-white">Versioning &amp; history</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="4 kB dedicated; most versioning logic lives inside the editor routes and write-back API, counted there">worker 4 kB +shared</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">Version on every save</b> — each create/update mints a new <code>page_versions</code> row; <code>draft_pages.current_page_version_id</code> points to the active one. The action (create/update/publish/revert/restore) is recorded.</li>
+        <li><b class="text-white">Version history panel</b> — the editor lists the 20 most-recent versions with timestamp and action.</li>
+        <li><b class="text-white">Version preview</b> — open any past version read-only (<code>?version=…</code>) and diff it against the current draft.</li>
+        <li><b class="text-white">Revert / restore</b> — roll a page back to any prior version; the revert itself becomes a new version (append-only history).</li>
+        <li><b class="text-white">Live-version indicator</b> — the editor marks which stored version currently matches what's published.</li>
+        <li><b class="text-white">History survives trash</b> — version rows and tag links move to trash with the page and come back intact on restore (ids preserved).</li>
+        <li><b class="text-white">Plugin &amp; API writes are versioned too</b> — every write-back API create/update/delete mints a version and fires the matching lifecycle hook, exactly like the admin editor.</li>
+        <li><b class="text-white">Custom version actions</b> — an API update can record its own action label in the history (e.g. a plugin's domain action like <i>checked-in</i>), not just a generic <i>update</i>.</li>
+        <li><b class="text-white">Delete versions</b> — remove a single version, or clean a page's entire history at once (both confirmation-gated); the current-version pointer is retargeted to the latest remaining version.</li>
+        <li><b class="text-white">Timezone-aware history</b> — version timestamps are formatted in the configured default timezone, not raw UTC.</li>
+      </ul>
+    </section>
+
+    <!-- 04 · REALTIME -->
+    <section id="realtime" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-mint/10 border border-mint/30 grid place-items-center text-lg">🛰️</div>
+        <div>
+          <p class="font-mono text-xs text-mint mb-1">// 04</p>
+          <h2 class="text-2xl font-bold text-white">Real-time co-editing</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="10 kB Durable Object + 14 kB client sync JS">worker 10 kB · views 14 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">Durable Object per page</b> (<code>PageSyncDO</code>) coordinates concurrent editors over WebSocket, so a team never silently overwrites each other's work.</li>
+        <li><b class="text-white">CRDT overlay model</b> — a live overlay of <i>uncommitted</i> edits sits on top of the last-saved page. Ops are stored per <code>(field, user)</code>, so one editor's edits can be dropped independently of another's.</li>
+        <li><b class="text-white">Last-write-wins by HLC</b> — each field's effective value is the op with the highest hybrid logical clock across users.</li>
+        <li><b class="text-white">Leave-without-saving recovery</b> — when an editor disconnects without saving, their uncommitted edits are dropped and each affected field falls back to the next editor's value, or the saved baseline.</li>
+        <li><b class="text-white">Save commits the overlay</b> — saving clears uncommitted ops and pushes the saved values as everyone's new baseline (a save-then-leave never reverts).</li>
+        <li><b class="text-white">Field-level presence highlights</b> — transient focus/blur signals show which field each collaborator is currently in (relayed, never stored).</li>
+        <li><b class="text-white">Presence roster with heartbeat</b> — a presence API tracks who's on a page (name, avatar, last-seen/last-active), with stale entries auto-expired after 10 minutes.</li>
+        <li><b class="text-white">Multi-tab safe</b> — a user's ops persist while any of their connections (e.g. a second tab) remain open.</li>
+      </ul>
+    </section>
+
+
+    <!-- ═══════════ GROUP Ⅱ ═══════════ -->
+    <div class="reveal pt-2">
+      <p class="font-mono text-xs text-plasma mb-2">// group 2 / 4</p>
+      <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Ⅱ · Managing &amp; publishing</h2>
+      <p class="mt-2 max-w-3xl text-slate-400">Organizing, finding, moving, and shipping content out to every reader.</p>
+      <div class="mt-5 h-px bg-gradient-to-r from-plasma/50 via-neon/25 to-transparent"></div>
+    </div>
+
+    <!-- 05 · PUBLISH -->
+    <section id="publish" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-neon/10 border border-neon/30 grid place-items-center text-lg">⛓️</div>
+        <div>
+          <p class="font-mono text-xs text-neon mb-1">// 05</p>
+          <h2 class="text-2xl font-bold text-white">Publishing</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="adapter + d1 + r2 + plugin targets, worker-only">worker 19 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">Adapter-based publish targets</b> — one publish builds a single page snapshot (row + denormalized tag links) and fans it out to every configured target; unpublish and delete remove it from all targets the same way.</li>
+        <li><b class="text-white">Draft ↔ published separation</b> — drafts live in the private CMS database; publishing writes to a <b>separate published database</b> a public reader Worker can be given in isolation (no access to users, sessions, drafts, or trash).</li>
+        <li><b class="text-white">Built-in <code>d1</code> target</b> — upserts <code>live_pages</code>/<code>live_page_tags</code> by <code>uuid</code>; unpublish deletes both.</li>
+        <li><b class="text-white">Built-in <code>r2</code> target</b> — writes static JSON: <code>pages/&lt;uuid&gt;.json</code> (full snapshot, lect parsed) plus a rolling <code>index.json</code> listing of all live pages.</li>
+        <li><b class="text-white">Plugin publish targets</b> — any plugin whose manifest declares <code>publishTarget: true</code> auto-receives publish/unpublish/tag-removal snapshots over three POST endpoints (IPFS pinning, webhooks, search indexes, static rebuilds).</li>
+        <li><b class="text-white">Awaited fan-out with partial-failure reporting</b> — publish targets are awaited; per-target failures are logged and surfaced in the editor flash (<i>"published, but these targets failed: …"</i>) without blocking the ones that succeeded.</li>
+        <li><b class="text-white">Publish-status badges</b> — the dashboard reads live state from the first read-capable target and shows draft/live status per page.</li>
+        <li><b class="text-white">Pull published → draft</b> — bring a live page back into drafts for editing (creates a draft if none exists).</li>
+        <li><b class="text-white">Unpublish &amp; publish-on-save</b> — publish directly from the dashboard, or with the <code>publish</code> action inside a save.</li>
+        <li><b class="text-white">Plugin auto-republish</b> — plugin-owned page types listed in manifest <code>autoPublishTypes</code> automatically republish on ordinary saves once they are already live; first publish remains an explicit editor action.</li>
+      </ul>
+    </section>
+
+    <!-- 06 · TAXONOMY -->
+    <section id="taxonomy" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-plasma/10 border border-plasma/30 grid place-items-center text-lg">🏷️</div>
+        <div>
+          <p class="font-mono text-xs text-plasma mb-1">// 06</p>
+          <h2 class="text-2xl font-bold text-white">Taxonomy &amp; tags</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="19 kB worker + 15 kB views">worker 19 kB · views 15 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">Taxonomies</b> — named groupings (years, categories, topics, collections, …) managed in their own admin (gated by <code>taxonomy:write</code>).</li>
+        <li><b class="text-white">Tags</b> — terms within a taxonomy, with localized names, slugs, and optional parent-tag nesting (gated by <code>tag:write</code>).</li>
+        <li><b class="text-white">Many-to-many page↔tag links</b> — tags attach to draft pages and travel with them through publish, trash, and restore.</li>
+        <li><b class="text-white">Inline tag assignment API</b> — add/remove a page's tags via JSON endpoints (bumps the page's <code>updated_at</code>).</li>
+        <li><b class="text-white">Tag pickers</b> in the editor and in advanced search, grouped by taxonomy.</li>
+        <li><b class="text-white">Tag weights &amp; batch reorder</b> — manual sort weight per tag, with a batch reorder endpoint so a whole taxonomy can be resequenced in one call.</li>
+        <li><b class="text-white">Slug-keyed taxonomies</b> — tags reference their taxonomy by slug (migration-safe renames); plugin-defined taxonomies appear in the tag admin alongside built-in ones.</li>
+      </ul>
+    </section>
+
+    <!-- 07 · SEARCH -->
+    <section id="search" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-mint/10 border border-mint/30 grid place-items-center text-lg">🔎</div>
+        <div>
+          <p class="font-mono text-xs text-mint mb-1">// 07</p>
+          <h2 class="text-2xl font-bold text-white">Search</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="62 kB worker (45 kB of it the Chinese variant table) + 23 kB views">worker 62 kB · views 23 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">Advanced multi-criterion search</b> — combine any number of criteria with <b>AND</b>, <b>OR</b>, or <b>NOT</b> operators.</li>
+        <li><b class="text-white">Blueprint-aware field paths</b> — search a specific field inside the lect JSON (including wildcard item paths like <code>items[*].name</code>), auto-populated from each page type's blueprint.</li>
+        <li><b class="text-white">Tag filters per criterion</b> — require pages carrying <i>all</i> selected tags (grouped by taxonomy).</li>
+        <li><b class="text-white">Chinese search variants</b> — a term automatically also matches its Simplified/Traditional equivalents.</li>
+        <li><b class="text-white">Scoped or global</b> — search all page types or a single type; sortable by id/name/slug/weight/created/updated, asc or desc, with pagination.</li>
+        <li><b class="text-white">SQLite JSON querying</b> — path specs compile to safe, parameterized <code>json_extract</code>/<code>json_each</code> SQL.</li>
+        <li><b class="text-white">Quick search box</b> on the dashboard redirects into the advanced-search form.</li>
+        <li><b class="text-white">Queued bulk actions</b> — publish, unpublish, or delete either selected search results or the full filtered result set; the work is queued as an admin job instead of timing out in the request.</li>
+      </ul>
+    </section>
+
+    <!-- 08 · MEDIA -->
+    <section id="media" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-neon/10 border border-neon/30 grid place-items-center text-lg">🗄️</div>
+        <div>
+          <p class="font-mono text-xs text-neon mb-1">// 08</p>
+          <h2 class="text-2xl font-bold text-white">Media</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="routes + upload validation, worker-only">worker 7 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">Private R2 uploads</b> — picture fields upload to a private R2 bucket (never public); the Worker gates every read at <code>/media/&lt;key&gt;</code> behind a valid session.</li>
+        <li><b class="text-white">Upload validation</b> — files are checked by magic-byte header sniffing and content type, with distinct <code>413</code> (too large) / <code>415</code> (unsupported) errors.</li>
+        <li><b class="text-white">Safe, collision-free keys</b> — sanitized filename + date-partitioned path (<code>dir/YYYY/M/D/</code>) + a random UUID prefix.</li>
+        <li><b class="text-white">Media metadata table</b> records key, URL, filename, content type, and size for every upload; uploads are audit-logged.</li>
+        <li><b class="text-white">On-the-fly thumbnails</b> — <code>/media-preview/&lt;key&gt;</code> serves Cloudflare Image-Resizing-optimized previews (100×100 cover), falling back to the original if transformations aren't enabled.</li>
+        <li><b class="text-white">Rate-limited &amp; permissioned</b> — uploads require <code>media:upload</code> and are throttled per IP.</li>
+      </ul>
+    </section>
+
+    <!-- 09 · IMPORT/EXPORT -->
+    <section id="importexport" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-plasma/10 border border-plasma/30 grid place-items-center text-lg">📥</div>
+        <div>
+          <p class="font-mono text-xs text-plasma mb-1">// 09</p>
+          <h2 class="text-2xl font-bold text-white">Import &amp; export integration</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="Plugin-facing API, worker-only">Plugin API</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">Dedicated import-export plugin</b> — CSV tooling now lives in a plugin rather than the CMS core, keeping format-specific UI and workflow independently deployable.</li>
+        <li><b class="text-white">Content metadata endpoint</b> — <code>GET /__cms/content-meta</code> supplies scoped page types, languages, taxonomies and blueprint-derived path specs for headers and mapping.</li>
+        <li><b class="text-white">Bulk target resolution</b> — list pages by up to 500 <code>ids</code> or <code>slugs</code>, with JSON-array binds that stay under D1’s parameter limit.</li>
+        <li><b class="text-white">Tag ensuring</b> — <code>POST /__cms/tags/ensure</code> creates or resolves tags by taxonomy and name for a batch import.</li>
+        <li><b class="text-white">Atomic batch creation</b> — import plugins use the same single/batch create path as other Plugin API callers, including scope checks, quotas, credits, version history and hooks.</li>
+      </ul>
+    </section>
+
+    <!-- 10 · RUNTIME SCHEMA -->
+    <section id="schema" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-mint/10 border border-mint/30 grid place-items-center text-lg">🧱</div>
+        <div>
+          <p class="font-mono text-xs text-mint mb-1">// 10</p>
+          <h2 class="text-2xl font-bold text-white">Runtime page &amp; block types</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="28 kB worker + 17 kB views">worker 28 kB · views 17 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">Database-defined page types</b> — create/edit/delete page types at runtime (gated by <code>pagetype:write</code>): a slug, name, blueprint (JSON), optional block lists and taxonomy lists, and a weight. No redeploy to add a content type.</li>
+        <li><b class="text-white">Database-defined block types</b> — reusable block definitions with their own field blueprints (gated by <code>blocktype:write</code>).</li>
+        <li><b class="text-white">Unified type admin</b> — page and block types share one CRUD route factory and reusable list/form views, while retaining the correct per-type controls and copy.</li>
+        <li><b class="text-white">Effective config merge</b> — code defaults, database-defined types, and plugin-contributed types are merged into one live editor config (cached per isolate).</li>
+        <li><b class="text-white">Plugin-contributed types are visible</b> — page/block types a plugin registers appear read-only in the admin, badged with the contributing plugin's name.</li>
+        <li><b class="text-white">Available-classes helper</b> — an admin snippet surfaces the Tailwind class set available to plugin/admin fragments.</li>
+      </ul>
+    </section>
+
+    <!-- 11 · TRASH -->
+    <section id="trash" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-neon/10 border border-neon/30 grid place-items-center text-lg">♻️</div>
+        <div>
+          <p class="font-mono text-xs text-neon mb-1">// 11</p>
+          <h2 class="text-2xl font-bold text-white">Trash &amp; recovery</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="13 kB worker + 8 kB views">worker 13 kB · views 8 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">Soft delete</b> — deleting a page copies it (with version history and tag links) into trash, preserving ids so a later restore keeps the same identity, and unpublishes it from every target.</li>
+        <li><b class="text-white">Trash browser</b> — paginated list with a per-type filter dropdown, a full type-count breakdown, and a "trashed in the last hour" counter.</li>
+        <li><b class="text-white">Restore to draft</b> — restore a single page (re-linking its parent if the parent still exists), bringing back version history and tags; legacy trash rows get a fresh restore snapshot.</li>
+        <li><b class="text-white">Bulk restore</b> — restore all, by type, or only the last hour, set-based so an event's worth of pages restores without timing out (gated by <code>trash:restore</code>).</li>
+        <li><b class="text-white">Permanent delete / empty trash</b> — purge a single row, or empty all / by type / last-hour only (gated by <code>trash:purge</code>).</li>
+        <li><b class="text-white">Audited</b> — restore and purge actions write to the audit log.</li>
+      </ul>
+    </section>
+
+
+    <!-- ═══════════ GROUP Ⅲ ═══════════ -->
+    <div class="reveal pt-2">
+      <p class="font-mono text-xs text-neon mb-2">// group 3 / 4</p>
+      <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Ⅲ · Access &amp; identity</h2>
+      <p class="mt-2 max-w-3xl text-slate-400">Who gets into the CMS, and exactly what each account is allowed to do.</p>
+      <div class="mt-5 h-px bg-gradient-to-r from-neon/50 via-plasma/25 to-transparent"></div>
+    </div>
+
+    <!-- 12 · AUTH -->
+    <section id="auth" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-neon/10 border border-neon/30 grid place-items-center text-lg">🔐</div>
+        <div>
+          <p class="font-mono text-xs text-neon mb-1">// 12</p>
+          <h2 class="text-2xl font-bold text-white">Authentication &amp; identity</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="45 kB worker + 4 kB views">worker 45 kB · views 4 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">OAuth 2.1 login with PKCE</b> (S256 code challenge) across five providers: <b>GitHub</b>, <b>Google</b>, <b>Microsoft/Entra</b>, <b>Apple</b>, and self-hosted <b>Eventuai</b>. The login page shows one button per provider in <code>ENABLED_PROVIDERS</code> order.</li>
+        <li><b class="text-white">Provider abstraction</b> handles per-provider quirks: Microsoft tenant selection (<code>common</code>/<code>organizations</code>/<code>consumers</code>/tenant id), Apple <code>form_post</code> response mode, and ID-token vs. userinfo-endpoint identity sourcing.</li>
+        <li><b class="text-white">ID-token validation</b> for Apple: verifies issuer, audience (client id), and expiry before trusting claims.</li>
+        <li><b class="text-white">Stateless PKCE flow</b> — the state + code verifier + chosen provider ride in a signed, 10-minute <code>oauth_state</code> JWT cookie (<code>__Host-</code> prefixed, <code>SameSite=None</code> on secure origins), so there is no server-side session store during login.</li>
+        <li><b class="text-white">Dual-JWT sessions</b>: short-lived 15-minute <b>access token</b> + rotatable 7-day <b>refresh token</b>, both HS256-signed with the Web Crypto API and stored as <code>httpOnly</code> cookies.</li>
+        <li><b class="text-white">Refresh-token revocation</b> — refresh JTIs are hashed (SHA-256) and stored in the <code>sessions</code> table; logout and rotation delete them, so tokens can be invalidated server-side.</li>
+        <li><b class="text-white">Silent token refresh</b> via <code>POST /auth/refresh</code> (JSON) with refresh-token rotation; admin pages keep the session alive with a keepalive.</li>
+        <li><b class="text-white">Session hygiene</b> — concurrent sessions per user are capped and expired session rows are purged opportunistically (via <code>waitUntil</code>, off the response path).</li>
+        <li><b class="text-white">Multi-provider account linking</b> — link additional providers to one CMS account from the profile page or <code>/auth/start?provider=…&amp;link=1</code>; it will not silently merge logged-out accounts by matching email.</li>
+        <li><b class="text-white">Identity table</b> (<code>user_oauth_identities</code>) maps many provider identities to one user, with a legacy <code>oauth_id</code> fallback for un-backfilled databases.</li>
+        <li><b class="text-white">Optional registration allowlist</b> — <code>ALLOWED_EMAIL_DOMAINS</code> restricts who can create a new account; existing linked users always pass so a config change can't lock anyone out.</li>
+        <li><b class="text-white">First-login role provisioning</b> — the IdP-supplied role seeds a new account once; later logins refresh profile fields but never overwrite the CMS role, so admin role edits stick.</li>
+        <li><b class="text-white">Rate-limited credential endpoints</b> — <code>/auth/start</code>, <code>/auth/callback</code>, and <code>/auth/refresh</code> are throttled per IP.</li>
+        <li><b class="text-white">Weak-secret guard</b> — the Worker refuses to serve (outside localhost) if <code>JWT_SECRET</code> is missing or under 32 chars, so no one can forge admin tokens.</li>
+      </ul>
+    </section>
+
+    <!-- 13 · RBAC -->
+    <section id="rbac" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-plasma/10 border border-plasma/30 grid place-items-center text-lg">🛡️</div>
+        <div>
+          <p class="font-mono text-xs text-plasma mb-1">// 13</p>
+          <h2 class="text-2xl font-bold text-white">Access control &amp; permissions</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="28 kB worker + 14 kB views">worker 28 kB · views 14 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">Capability-based authorization</b> — routes require a specific <i>permission</i> (e.g. <code>content:publish</code>), not just "is an editor". A user's effective permissions are the union over every role they hold (roles are a comma-separated list).</li>
+        <li><b class="text-white">Four built-in roles</b> with a least-privilege matrix: <b>admin</b> (everything, never lockable), <b>editor</b> (full content lifecycle, taxonomy, media, import — no purge/plugins), <b>moderator</b> (publish, soft-delete, restore only), and <b>viewer</b> (no admin access; blocked from <code>/admin</code> by the editor guard).</li>
+        <li><b class="text-white">16 granular permissions</b>: <code>content:read/write/publish/delete/import</code>, <code>trash:restore/purge</code>, <code>tag:write</code>, <code>taxonomy:write</code>, <code>media:upload</code>, <code>plugin:access/manage</code>, <code>pagetype:write</code>, <code>blocktype:write</code>, <code>users:manage</code>, <code>roles:manage</code>.</li>
+        <li><b class="text-white">Custom &amp; customizable roles</b> — a Roles admin (gated by <code>roles:manage</code>) creates custom roles and edits any role's permission set from a picker with human-readable descriptions. Managed roles own their permission set explicitly; <b>admin</b> is always all-powerful and never editable (anti-lockout).</li>
+        <li><b class="text-white">Database-backed permission resolution</b> layered over code defaults, cached per-isolate with a 60-second TTL.</li>
+        <li><b class="text-white">User management</b> (gated by <code>users:manage</code>) — list users, view linked identities, and assign roles.</li>
+        <li><b class="text-white">Plugin-contributed permissions</b> — a plugin can declare namespaced permissions (e.g. <code>events:manage</code>) that appear in the Roles admin for granting to custom roles.</li>
+      </ul>
+    </section>
+
+
+    <!-- ═══════════ GROUP Ⅳ ═══════════ -->
+    <div class="reveal pt-2">
+      <p class="font-mono text-xs text-neon mb-2">// group 4 / 4</p>
+      <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Ⅳ · Platform &amp; extensibility</h2>
+      <p class="mt-2 max-w-3xl text-slate-400">The plugin platform, credit billing &amp; quotas, admin shell, runtime system settings, security hardening, and the edge infrastructure underneath.</p>
+      <div class="mt-5 h-px bg-gradient-to-r from-neon/50 via-plasma/25 to-transparent"></div>
+    </div>
+
+    <!-- 14 · PLUGINS -->
+    <section id="plugins" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-plasma/10 border border-plasma/30 grid place-items-center text-lg">🧩</div>
+        <div>
+          <p class="font-mono text-xs text-plasma mb-1">// 14</p>
+          <h2 class="text-2xl font-bold text-white">Plugin system</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="82 kB worker + 19 kB views">worker 82 kB · views 19 kB</span>
+      </div>
+      <p class="text-sm text-slate-400 mb-4 leading-relaxed">Each plugin is a separate Cloudflare Worker reached over HTTPS at <code>{url}/__plugin/…</code>. The CMS discovers plugins, caches their manifests, and forwards the signed-in user plus a shared secret on every call. A plugin can add nine things:</p>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">Lifecycle hooks</b> — run on page create / update / publish / unpublish / delete (webhooks, external indexing, cache purge, notifications). Hooks are best-effort and never block the editor.</li>
+        <li><b class="text-white">Content types</b> — register new blueprints / blocks / block-lists / taxonomy-lists that merge into the editor config.</li>
+        <li><b class="text-white">Fields &amp; blocks</b> — register new pagefield types and serve their Liquid snippets, rendered through the CMS editor.</li>
+        <li><b class="text-white">Edit views</b> — render the whole edit/new form for owned page types (see §02).</li>
+        <li><b class="text-white">Admin routes + nav</b> — add an admin page proxied at <code>/admin/plugins/&lt;id&gt;/…</code> with a nav entry; a nav item can nest under the Settings group and restrict itself by role.</li>
+        <li><b class="text-white">Publish targets</b> — declare <code>publishTarget: true</code> to receive publish snapshots (see §05).</li>
+        <li><b class="text-white">Save-time auto-publish rules</b> — declare <code>autoPublishTypes</code> for owned page types that should republish automatically after an already-live page is edited.</li>
+        <li><b class="text-white">Quota limits</b> — declare admin-configurable caps on how many pages of a type may exist (see §16).</li>
+        <li><b class="text-white">Credit costs</b> — declare chargeable actions billed against user credit balances (see §16).</li>
+      </ul>
+      <div class="h-px bg-white/10 my-6"></div>
+      <p class="font-mono text-xs text-plasma mb-3">// registry &amp; safety</p>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">Runtime registration (no redeploy)</b> — register/enable/disable/configure plugins by URL in a management admin (gated by <code>plugin:manage</code>), stored in a <code>plugins</code> table. Manifests are auto-discovered and cached.</li>
+        <li><b class="text-white">Per-plugin secrets</b> — each plugin gets its own generated shared secret (falling back to the env <code>PLUGIN_SECRET</code>), so one plugin can be rotated or revoked without touching others.</li>
+        <li><b class="text-white">Tenant-aware plugin calls</b> — hook and publish-target requests include <code>x-cms-tenant</code> when <code>CANONICAL_ORIGIN</code> is configured, so multi-tenant plugins can route CMS-originated work correctly.</li>
+        <li><b class="text-white">Admin proxy</b> — plugin admin pages are proxied under the CMS origin, wrapped in admin chrome, under the strict nonce CSP (gated by <code>plugin:access</code>). Full-document plugin responses may opt into same-origin iframing.</li>
+        <li><b class="text-white">SSRF guard</b> — plugin URLs are rejected if they resolve to obvious private / loopback / link-local (incl. cloud metadata <code>169.254.169.254</code>) / CGNAT / <code>.internal</code> literals.</li>
+        <li><b class="text-white">Approved static assets</b> — a plugin can ship JS/CSS to run inside CMS chrome (e.g. a camera scanner), but an admin must explicitly approve each path, pinning its SRI (sha384) content hash, before it survives sanitization.</li>
+        <li><b class="text-white">Delegated page-type access</b> — a companion plugin can request <code>readTypes</code>/<code>writeTypes</code> for page types it doesn't own; an admin must approve each delegated scope before the CMS honors it. A scope may be the wildcard <code>*</code>, which (once approved) grants access to every page type.</li>
+        <li><b class="text-white">Versioned plugin view files</b> — plugin view/asset files are served with immutable, revision-keyed caching.</li>
+        <li><b class="text-white">Inert when unused</b> — with no plugins configured, the system adds no overhead.</li>
+      </ul>
+    </section>
+
+    <!-- 15 · WRITE-BACK API -->
+    <section id="writeback" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-neon/10 border border-neon/30 grid place-items-center text-lg">🔁</div>
+        <div>
+          <p class="font-mono text-xs text-neon mb-1">// 15</p>
+          <h2 class="text-2xl font-bold text-white">Plugin write-back API <span class="text-slate-500 font-mono text-sm">/__cms</span></h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="one 55 kB route module, worker-only">worker 55 kB</span>
+      </div>
+      <p class="text-sm text-slate-400 mb-4 leading-relaxed">A reverse, server-to-server channel (authenticated by the per-plugin secret, outside the browser auth stack) so guest-facing flows on a plugin's own domain — public RSVP submit, QR check-in, bulk contact import — can read and write the CMS pages they own or are delegated.</p>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">Scoped reads &amp; writes</b> — a caller identifies itself via <code>x-plugin-id</code>; writes are limited to its manifest page types plus admin-approved <code>writeTypes</code>, reads also reach approved <code>readTypes</code>.</li>
+        <li><b class="text-white">List / read pages</b> — paginated listing by type with name/slug/lect search (Chinese variants included), parent filter, and lect-pointer filters (single or multi-value <code>IN</code>).</li>
+        <li><b class="text-white">Large lookup-safe reads</b> — direct <code>ids</code>/<code>slugs</code> lookups and <code>include_tags=1</code> lists use JSON-array binds, supporting up to 500 values without exceeding D1’s 100-parameter limit.</li>
+        <li><b class="text-white">Advanced search endpoint</b> — <code>POST /pages/search</code> accepts the same multi-criterion semantics as the admin advanced search (AND/OR/NOT operators, blueprint field paths, tag filters, Chinese variants), scoped to the caller's readable types, up to 500 results per page.</li>
+        <li><b class="text-white">Create &amp; batch-create</b> — single create and bulk creation up to 100 pages share one path for validation, ID/parent resolution, quotas, credits, DB writes and hooks; batches preserve all-or-nothing limits/credit semantics while reporting per-item errors.</li>
+        <li><b class="text-white">Partial update</b> — PUT/PATCH merge only the fields sent (blueprint ← stored ← incoming), re-version, and commit the live overlay; an update may label its version with a custom action string.</li>
+        <li><b class="text-white">Batch update</b> — <code>PATCH /pages/batch</code> applies up to 100 partial lect updates in one transaction, reports malformed/duplicate/forbidden rows by input index, and preserves version history plus update hooks for every valid page.</li>
+        <li><b class="text-white">Batch publish</b> — <code>POST /pages/publish</code> publishes up to 100 draft page IDs through the standard target pipeline, enforcing the caller's page-type scope, rejecting invalid or duplicate IDs, reporting per-item target failures, and emitting publish hooks.</li>
+        <li><b class="text-white">Credit &amp; quota aware</b> — priced page types are charged before insert (insufficient balance returns <code>402</code> with the cost breakdown; failed inserts refund automatically) and quota limits are enforced on every create, single or bulk (see §16).</li>
+        <li><b class="text-white">Server-side bulk clone</b> — duplicate a related collection (e.g. an event's guests) by lect pointer or parent id, with a uniform lect transform (drop keys, merge overrides), processed in bounded chunks that return a resume cursor so arbitrarily large lists clone across several requests.</li>
+        <li><b class="text-white">Server-side bulk delete</b> — soft-delete a related collection (by pointer or parent), and batch-delete by id list, both chunked and cursor-resumable.</li>
+        <li><b class="text-white">Versioned, audited, observable</b> — every create/update/delete mints a page version, writes an audit row attributed to <code>plugin:&lt;id&gt;</code>, and fires lifecycle hooks to other plugins.</li>
+        <li><b class="text-white">Subrequest-budget aware</b> — batch sizes and per-call caps are tuned to stay within Workers' free-plan subrequest limits.</li>
+      </ul>
+    </section>
+
+    <!-- 16 · CREDITS & QUOTAS -->
+    <section id="credits" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-mint/10 border border-mint/30 grid place-items-center text-lg">💳</div>
+        <div>
+          <p class="font-mono text-xs text-mint mb-1">// 16</p>
+          <h2 class="text-2xl font-bold text-white">Credits &amp; quota limits</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="26 kB worker + 7 kB views">worker 26 kB · views 7 kB</span>
+      </div>
+      <p class="text-sm text-slate-400 mb-4 leading-relaxed">Meter or monetize what plugins let users do. A plugin's manifest <i>declares</i> chargeable actions and quota limits, an admin <i>configures</i> the prices and caps, and the host <i>enforces</i> them on every page-create path — the admin editor and the write-back API alike, so neither door can be used to sidestep the other.</p>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">Per-user balances &amp; append-only ledger</b> — every user carries a credit balance; every change appends a <code>credit_ledger</code> row (delta, balance-after, action, entity, plugin, note, actor), so the ledger always explains the balance.</li>
+        <li><b class="text-white">Manifest-declared costs</b> — <code>page_create</code> costs are charged automatically by the host whenever a page of that type is created; <code>metered</code> costs are reported by the plugin via <code>POST /__cms/credits/charge</code> for actions the host can't observe (e.g. sending an EDM).</li>
+        <li><b class="text-white">Admin-configured pricing</b> — a Plugins → Credits screen prices each declared cost (0 = explicitly free); unconfigured costs fall back to the manifest default. If several plugins price the same page type, the effective cost is the <i>sum</i>.</li>
+        <li><b class="text-white">Overdraft-proof by construction</b> — the ledger INSERT and balance UPDATE share a <code>credits ≥ amount</code> guard and run in one D1 batch (a transaction), so concurrent spends can never take a balance below zero; success is verified via <code>RETURNING</code>.</li>
+        <li><b class="text-white">402 with cost breakdown, automatic refunds</b> — insufficient balance rejects the create with the priced parts itemized; if a charged operation fails downstream, the charge is refunded best-effort as its own ledger row.</li>
+        <li><b class="text-white">Admin grants &amp; deductions</b> — <code>users:manage</code> can adjust any balance with a mandatory note, audit-logged; the profile page shows a paginated ledger and the sidebar shows your live balance.</li>
+        <li><b class="text-white">Configurable quota limits</b> — a plugin declares caps on how many pages of a type may exist, scoped <b>total</b>, <b>per-parent</b>, or <b>per-pointer</b> (e.g. guests per event); an admin sets the value or marks it explicitly unlimited.</li>
+        <li><b class="text-white">Plugin-visible usage &amp; quotes</b> — <code>GET /__cms/limits</code>, <code>GET /__cms/credits</code>, and <code>GET /__cms/credits/quote</code> let plugin UIs show current quota usage, effective pricing, balances, and affordability before starting long jobs.</li>
+        <li><b class="text-white">Bulk-safe enforcement</b> — a bulk create or import that would breach a quota is rejected whole, never half-applied; violations return a human-readable message pointing at the limit.</li>
+        <li><b class="text-white">Scope-gated declarations</b> — a plugin can only price or cap page types it owns or has been delegated (admin-approved); declarations are validated, deduped, and capped at 20 per plugin, so a hostile manifest can't block or bill another plugin's content.</li>
+      </ul>
+    </section>
+
+    <!-- 17 · ADMIN UX -->
+    <section id="adminux" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-plasma/10 border border-plasma/30 grid place-items-center text-lg">🖥️</div>
+        <div>
+          <p class="font-mono text-xs text-plasma mb-1">// 17</p>
+          <h2 class="text-2xl font-bold text-white">Admin experience</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="86 kB worker + 268 kB views &amp; client assets (incl. 115 kB vendored Liquid engine + 45 kB compiled CSS)">worker 86 kB · views 268 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">Liquid-templated admin UI</b> — server-rendered sections/templates served from a dedicated views binding, with compiled Tailwind CSS and small vanilla-JS enhancements (table filter, color tags, privacy table, client render).</li>
+        <li><b class="text-white">Dashboard</b> — paginated page list with All / Draft / Live status filters, per-type sub-lists (<code>/pages/list/:type</code>), live publish badges, quick search, and import/export shortcuts.</li>
+        <li><b class="text-white">Color labels</b> — an inline picker assigns a color (red / orange / yellow / green / blue / purple / gray, or none) to a page, written to a page <code>lect</code> attribute. It's a lightweight visual marker — unrelated to taxonomy tags — that drives at-a-glance row color-coding and client-side filtering on the dashboard.</li>
+        <li><b class="text-white">Flash messages</b> carried through redirects for every action's outcome.</li>
+        <li><b class="text-white">Profile page</b> — view your account, linked identities, and start additional provider links.</li>
+        <li><b class="text-white">Settings-grouped navigation</b> — plugin nav items and admin sections can nest under a Settings group.</li>
+        <li><b class="text-white">Session keepalive</b> keeps admin sessions warm while you work.</li>
+        <li><b class="text-white">Auto-hiding mobile header</b> — the admin header collapses as you scroll on small screens, giving content the full viewport.</li>
+        <li><b class="text-white">Sidebar credit balance</b> — your live credit balance shows in the sidebar (see §16).</li>
+        <li><b class="text-white">Configurable branding</b> — the app name and icon come from System settings (see §18), shown in the sidebar and on the login page; per-type titled views.</li>
+        <li><b class="text-white">Dashboard brand link</b> — the configured site title and icon in both desktop and mobile admin navigation link directly to <code>/admin</code>.</li>
+        <li><b class="text-white">Custom 404 &amp; 500 pages</b> rendered from the views layer.</li>
+      </ul>
+    </section>
+
+    <!-- 18 · SYSTEM SETTINGS -->
+    <section id="settings" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-neon/10 border border-neon/30 grid place-items-center text-lg">🎛️</div>
+        <div>
+          <p class="font-mono text-xs text-neon mb-1">// 18</p>
+          <h2 class="text-2xl font-bold text-white">System settings &amp; branding</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="17 kB worker + 10 kB views">worker 17 kB · views 10 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">App branding</b> — rename the admin app and pick its icon at runtime; both show in the sidebar and on the login page. White-label the CMS per deployment without a redeploy.</li>
+        <li><b class="text-white">Sidebar menu manager</b> — show/hide and re-weight every built-in nav item <i>and</i> every plugin nav item, including the weight of the Settings group itself; the System entry is always kept visible so you can never hide your way out of settings (anti-lockout).</li>
+        <li><b class="text-white">Configurable admin home</b> — point the post-login landing at any <code>/admin</code> path (e.g. a plugin's dashboard) instead of the page list.</li>
+        <li><b class="text-white">Key-value settings store</b> — a single upsert-semantics <code>settings</code> table backs branding, menu layout, admin home, plugin credit prices, and plugin quota values.</li>
+      </ul>
+    </section>
+
+    <!-- 19 · SECURITY -->
+    <section id="security" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-mint/10 border border-mint/30 grid place-items-center text-lg">🔒</div>
+        <div>
+          <p class="font-mono text-xs text-mint mb-1">// 19</p>
+          <h2 class="text-2xl font-bold text-white">Security hardening</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="dedicated files only; most enforcement lives inside auth, plugins, and media, counted there">worker 9 kB +shared</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">Strict CSP with per-request nonces</b> — <code>default-src 'self'</code>, nonce-gated scripts, <code>base-uri 'none'</code>, <code>object-src 'none'</code>, <code>frame-ancestors 'none'</code>; a route can opt into <code>wasm-unsafe-eval</code> (e.g. the zxing camera scanner) or same-origin framing.</li>
+        <li><b class="text-white">Security headers on every response</b> — HSTS (preload, 1 year), <code>X-Content-Type-Options: nosniff</code>, <code>Referrer-Policy: same-origin</code>, and <code>X-Frame-Options: DENY</code> by default.</li>
+        <li><b class="text-white">Fail-closed cross-origin mutation guard</b> — non-safe methods are rejected unless a browser signal (Origin, Referer, or <code>Sec-Fetch-Site: same-origin</code>) positively proves same-origin; headerless clients must send a matching Origin. The <code>/__cms</code> secret-authenticated channel is exempted deliberately.</li>
+        <li><b class="text-white">Canonical host enforcement</b> — requests to non-canonical hosts get a 308 redirect (GET/HEAD) or 404 (mutations), preventing host-confusion.</li>
+        <li><b class="text-white">Locked-down Permissions-Policy</b> — camera/microphone/geolocation denied by default; opt-in per route.</li>
+        <li><b class="text-white">No-store on sensitive paths</b> — <code>/admin</code> and <code>/auth</code> responses set <code>Cache-Control: no-store</code>.</li>
+        <li><b class="text-white">Single-use admin submit tokens</b> — signed per-form <code>_cms_once</code> tokens are atomically claimed in D1 to stop duplicate POSTs; claims are released after downstream failures so a legitimate retry still works.</li>
+        <li><b class="text-white">Plugin fragment sanitization</b> — proxied plugin HTML runs under the strict nonce CSP and is sanitized; inline scripts are stripped unless delivered as approved, hash-pinned assets.</li>
+        <li><b class="text-white">Per-IP rate limiting</b> on auth and upload endpoints (Workers Rate Limiting bindings).</li>
+        <li><b class="text-white">Audit log</b> — sensitive actions (import, media upload, restore, purge, plugin writes) record who did what to which entity.</li>
+        <li><b class="text-white">Private-by-default data separation</b> — public readers can be given only the published database, with zero access to auth, sessions, drafts, or trash.</li>
+      </ul>
+    </section>
+
+    <!-- 20 · INFRA -->
+    <section id="infra" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-neon/10 border border-neon/30 grid place-items-center text-lg">🌐</div>
+        <div>
+          <p class="font-mono text-xs text-neon mb-1">// 20</p>
+          <h2 class="text-2xl font-bold text-white">Data &amp; infrastructure</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="router + shared types + schema migrations, worker-only">worker 46 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">100% edge-native</b> — a single Cloudflare Worker (Hono router), no origin servers and no databases to babysit.</li>
+        <li><b class="text-white">Two D1 databases</b> — a private CMS store (auth, sessions, drafts, trash, taxonomy, versions, media metadata, roles, plugins, jobs, approvals, settings, credit ledger) and a separate published store (<code>live_pages</code>/<code>live_page_tags</code>).</li>
+        <li><b class="text-white">R2 object storage</b> — a private media bucket, plus an optional static-JSON publish bucket.</li>
+        <li><b class="text-white">Durable Objects</b> — per-page WebSocket coordinators with SQLite storage for CRDT ops and presence.</li>
+        <li><b class="text-white">Cloudflare Queues</b> — a CMS-owned queue for durable background admin jobs.</li>
+        <li><b class="text-white">Versioned migrations</b> — checked-in SQL migrations for both databases (auth identities, admin jobs, plugin asset approvals, plugin page-type approvals, settings, tag weights &amp; taxonomy slugs, credits), with a local one-command migrate script.</li>
+        <li><b class="text-white">Deploy-revision awareness</b> — view assets are cache-busted by the Worker version metadata (or a manual fallback), so a new deploy invalidates cached CSS/JS.</li>
+        <li><b class="text-white">Web Crypto everywhere</b> — JWT signing/verification and token hashing use the platform crypto API, no Node dependencies.</li>
+      </ul>
+    </section>
+
+    <!-- 21 · OPS -->
+    <section id="ops" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-plasma/10 border border-plasma/30 grid place-items-center text-lg">⚙️</div>
+        <div>
+          <p class="font-mono text-xs text-plasma mb-1">// 21</p>
+          <h2 class="text-2xl font-bold text-white">Background jobs &amp; ops</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="jobs + queue runner, worker-only">worker 8 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">Durable admin jobs</b> — long-running admin actions (e.g. large plugin duplicate/delete requests) are enqueued on a queue and processed by a job runner, tracked in an <code>admin_jobs</code> table, so they survive request timeouts.</li>
+        <li><b class="text-white">Off-response-path hygiene</b> — session capping/purging and hook/audit delivery run via <code>waitUntil</code> so they never slow the user's request.</li>
+        <li><b class="text-white">Chunked, resumable bulk operations</b> — clone/delete/restore of large collections, plus advanced-search bulk publish/unpublish/delete, are batched or queued with cursors/jobs to stay within platform limits.</li>
+        <li><b class="text-white">Best-effort, non-blocking integrations</b> — lifecycle hooks and audit writes are fire-and-forget; publish targets are awaited but fail independently.</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <!-- ───────────────────────── CTA ───────────────────────── -->
+  <section class="relative py-20">
+    <div class="glow-orb w-[30rem] h-[30rem] bg-plasma bottom-0 left-1/2 -translate-x-1/2"></div>
+    <div class="relative max-w-3xl mx-auto px-5 sm:px-8 text-center">
+      <div class="reveal glass rounded-3xl px-8 py-14 sm:px-14">
+        <p class="font-mono text-sm text-neon mb-4">// see it running</p>
+        <h2 class="text-3xl sm:text-4xl font-bold text-white tracking-tight leading-tight">
+          Every one of these is <span class="gradient-text">live on the edge.</span>
+        </h2>
+        <p class="mt-5 text-slate-400 text-lg">Don't trust the list — verify it yourself.</p>
+        <div class="mt-9 flex flex-wrap items-center justify-center gap-4">
+          <a href="https://cms.eventuai.com" target="_blank" rel="noopener"
+             class="neon-btn inline-block px-9 py-4 rounded-xl bg-gradient-to-r from-neon/20 to-plasma/20 border border-neon/60 text-white font-bold font-mono text-lg">
+            Launch 0xCMS ↗
+          </a>
+          <a href="index.html" class="inline-block px-9 py-4 rounded-xl border border-white/15 text-slate-300 font-semibold font-mono hover:border-neon/50 hover:text-neon transition-colors">
+            ← Back to overview
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── FOOTER ───────────────────────── -->
+  <footer class="border-t border-white/5 py-10">
+    <div class="max-w-7xl mx-auto px-5 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs text-slate-600">
+      <div class="flex items-center gap-2">
+        <span class="text-neon font-bold">0xCMS</span>
+        <span>— content management, edge-native.</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <a href="index.html#features" class="hover:text-neon transition-colors">overview</a>
+        <a href="features.html" class="hover:text-neon transition-colors">features</a>
+        <a href="page.html" class="hover:text-neon transition-colors">data model</a>
+        <a href="cms-update.html" class="hover:text-neon transition-colors">updates</a>
+        <a href="https://cms.eventuai.com" target="_blank" rel="noopener" class="hover:text-neon transition-colors">app ↗</a>
+      </div>
+      <div>built on <span class="text-plasma">Cloudflare Workers</span> ⚡</div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+  <script src="webgl-bg.js"></script>
+</body>
+</html>

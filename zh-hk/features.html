@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="zh-HK" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>0xCMS — 完整功能清單</title>
+  <meta name="description" content="0xCMS 的完整功能清單：OAuth 2.1 驗證、以能力為本的 RBAC、結構化多語內容、頁面版本、即時 CRDT 協同編輯、adapter 式發佈、分類、進階搜尋、私有 R2 媒體庫、CSV 匯入／匯出、執行時頁面及區塊類型、回收筒、具回寫 API 的完整 Worker 插件系統、插件 credit 收費與配額限制，以及執行時系統設定。" />
+  <link rel="alternate" hreflang="en" href="../features.html" />
+  <link rel="alternate" hreflang="zh-HK" href="features.html" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            void: '#05010f',
+            panel: '#0b0620',
+            neon: '#22d3ee',
+            plasma: '#a855f7',
+            mint: '#34d399',
+          },
+          fontFamily: {
+            mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+            sans: ['"Space Grotesk"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet" />
+  <style>
+    body { background-color: #05010f; }
+
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(168, 85, 247, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34, 211, 238, 0.07) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+    }
+
+    .glow-orb {
+      position: absolute;
+      border-radius: 9999px;
+      filter: blur(110px);
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    .gradient-text {
+      background: linear-gradient(100deg, #22d3ee 0%, #a855f7 50%, #34d399 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .glass {
+      background: rgba(15, 8, 36, 0.55);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(168, 85, 247, 0.18);
+    }
+
+    .glass-hover { transition: border-color .3s, transform .3s, box-shadow .3s; }
+    .glass-hover:hover {
+      border-color: rgba(34, 211, 238, 0.45);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px -12px rgba(34, 211, 238, 0.25);
+    }
+
+    .neon-btn {
+      box-shadow: 0 0 24px rgba(34, 211, 238, 0.35), inset 0 0 12px rgba(34, 211, 238, 0.15);
+      transition: box-shadow .3s, transform .2s;
+    }
+    .neon-btn:hover {
+      box-shadow: 0 0 44px rgba(34, 211, 238, 0.6), inset 0 0 18px rgba(34, 211, 238, 0.25);
+      transform: translateY(-2px);
+    }
+
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity .7s ease, transform .7s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    .tick { color: #34d399; }
+
+    pre code { font-family: 'JetBrains Mono', monospace; }
+    code { font-family: 'JetBrains Mono', monospace; }
+
+    ::selection { background: rgba(168, 85, 247, 0.45); color: #fff; }
+
+    html { scrollbar-color: #4c1d95 #05010f; }
+    html, body { overflow-x: hidden; }
+
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    /* Feature list bullets */
+    .feat-list > li {
+      position: relative;
+      padding-left: 1.4rem;
+    }
+    .feat-list > li::before {
+      content: '▸';
+      position: absolute;
+      left: 0;
+      color: #22d3ee;
+      opacity: 0.7;
+    }
+    .kbd {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      padding: 0.05rem 0.4rem;
+      border-radius: 0.35rem;
+      background: rgba(34, 211, 238, 0.08);
+      border: 1px solid rgba(34, 211, 238, 0.2);
+      color: rgba(34, 211, 238, 0.9);
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body class="font-sans text-slate-300 antialiased overflow-x-hidden">
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+  <!-- ───────────────────────── NAV ───────────────────────── -->
+  <header id="navbar" class="fixed top-0 inset-x-0 z-50 transition-all duration-300">
+    <nav class="max-w-7xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-2.5 group">
+        <span class="relative grid place-items-center w-9 h-9 rounded-lg bg-gradient-to-br from-neon/20 to-plasma/20 border border-plasma/40">
+          <span class="font-mono font-bold text-neon text-sm">0x</span>
+          <span aria-hidden="true" class="absolute -inset-px rounded-lg border border-neon/0 group-hover:border-neon/50 transition-colors">&nbsp;</span>
+        </span>
+        <span class="font-mono font-bold text-lg text-white tracking-tight">0x<span class="gradient-text">CMS</span></span>
+      </a>
+
+      <div class="hidden md:flex items-center gap-8 font-mono text-sm">
+        <a href="index.html" class="text-slate-400 hover:text-neon transition-colors">/總覽</a>
+        <a href="features.html" class="text-neon transition-colors">/完整功能</a>
+        <a href="index.html#architecture" class="text-slate-400 hover:text-neon transition-colors">/架構</a>
+        <a href="page.html" class="text-slate-400 hover:text-neon transition-colors">/資料模型</a>
+        <a href="cms-update.html" class="text-slate-400 hover:text-neon transition-colors">/更新</a>
+        <a href="../features.html" hreflang="en" class="text-slate-400 hover:text-neon transition-colors">English</a>
+        <a href="https://cms.eventuai.com" target="_blank" rel="noopener"
+           class="neon-btn px-5 py-2 rounded-lg bg-neon/10 border border-neon/50 text-neon font-semibold">
+          開啟 App ↗
+        </a>
+      </div>
+
+      <button id="menu-btn" class="md:hidden text-slate-300 p-2" aria-label="切換選單">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </nav>
+
+    <div id="mobile-menu" class="hidden md:hidden glass mx-4 rounded-xl p-4 flex flex-col gap-3 font-mono text-sm">
+      <a href="index.html" class="text-slate-300 hover:text-neon py-1">/總覽</a>
+      <a href="features.html" class="text-neon py-1">/完整功能</a>
+      <a href="index.html#architecture" class="text-slate-300 hover:text-neon py-1">/架構</a>
+      <a href="page.html" class="text-slate-300 hover:text-neon py-1">/資料模型</a>
+      <a href="cms-update.html" class="text-slate-300 hover:text-neon py-1">/更新</a>
+      <a href="../features.html" hreflang="en" class="text-slate-300 hover:text-neon py-1">English</a>
+      <a href="https://cms.eventuai.com" target="_blank" rel="noopener" class="text-neon font-semibold py-1">開啟 App ↗</a>
+    </div>
+  </header>
+
+  <!-- ───────────────────────── HERO ───────────────────────── -->
+  <section class="relative pt-36 pb-16">
+    <div class="grid-bg absolute inset-0"></div>
+    <div class="glow-orb w-[34rem] h-[34rem] bg-plasma top-[-8rem] left-[-10rem]"></div>
+    <div class="glow-orb w-[30rem] h-[30rem] bg-neon top-[2rem] right-[-8rem]"></div>
+
+    <div class="relative max-w-5xl mx-auto px-5 sm:px-8 text-center">
+      <p class="font-mono text-sm text-neon mb-4">// 完整功能清單</p>
+      <h1 class="text-4xl sm:text-6xl font-bold text-white tracking-tight leading-tight">
+        <span class="gradient-text">0xCMS</span> 的每一項功能
+      </h1>
+      <p class="mt-6 text-slate-400 text-lg max-w-2xl mx-auto">
+        直接讀自原始碼、毫不含糊的完整功能盤點：這個 Worker 到底提供甚麼。
+        驗證、以能力為本的存取控制、結構化多語內容、版本、即時協同編輯、adapter 式發佈、
+        分類、進階搜尋、私有媒體庫、批量匯入／匯出、可於執行時編輯的 schema、回收筒、
+        附 credit 收費與配額限制的完整插件平台，以及執行時系統設定 —
+        每個 section 均標注實作它的原始碼大小。
+      </p>
+      <div class="mt-9 flex flex-wrap items-center justify-center gap-3 font-mono text-xs">
+        <span class="kbd">Cloudflare Workers</span>
+        <span class="kbd">Hono</span>
+        <span class="kbd">D1 × 2</span>
+        <span class="kbd">R2</span>
+        <span class="kbd">Durable Objects</span>
+        <span class="kbd">Queues</span>
+        <span class="kbd">Liquid views</span>
+        <span class="kbd">Web Crypto JWT</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── TABLE OF CONTENTS ───────────────────────── -->
+  <section class="relative pb-8">
+    <div class="relative max-w-6xl mx-auto px-5 sm:px-8">
+      <div class="reveal glass rounded-2xl p-6 sm:p-8">
+        <p class="font-mono text-sm text-plasma mb-4">// 目錄 · 四大分組</p>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-6 font-mono text-sm">
+          <div>
+            <p class="text-xs text-mint mb-2">Ⅰ · 內容編寫</p>
+            <div class="flex flex-col gap-1.5">
+              <a href="#content" class="text-slate-400 hover:text-neon transition-colors">01 · 內容模型</a>
+              <a href="#editor" class="text-slate-400 hover:text-neon transition-colors">02 · 頁面編輯器</a>
+              <a href="#versioning" class="text-slate-400 hover:text-neon transition-colors">03 · 版本與歷史</a>
+              <a href="#realtime" class="text-slate-400 hover:text-neon transition-colors">04 · 即時協同編輯</a>
+            </div>
+          </div>
+          <div>
+            <p class="text-xs text-plasma mb-2">Ⅱ · 內容管理與發佈</p>
+            <div class="flex flex-col gap-1.5">
+              <a href="#publish" class="text-slate-400 hover:text-neon transition-colors">05 · 發佈</a>
+              <a href="#taxonomy" class="text-slate-400 hover:text-neon transition-colors">06 · 分類與標籤</a>
+              <a href="#search" class="text-slate-400 hover:text-neon transition-colors">07 · 搜尋</a>
+              <a href="#media" class="text-slate-400 hover:text-neon transition-colors">08 · 媒體</a>
+              <a href="#importexport" class="text-slate-400 hover:text-neon transition-colors">09 · 匯入與匯出</a>
+              <a href="#schema" class="text-slate-400 hover:text-neon transition-colors">10 · 執行時頁面／區塊類型</a>
+              <a href="#trash" class="text-slate-400 hover:text-neon transition-colors">11 · 回收筒與還原</a>
+            </div>
+          </div>
+          <div>
+            <p class="text-xs text-neon mb-2">Ⅲ · 存取與身分</p>
+            <div class="flex flex-col gap-1.5">
+              <a href="#auth" class="text-slate-400 hover:text-neon transition-colors">12 · 驗證與身分</a>
+              <a href="#rbac" class="text-slate-400 hover:text-neon transition-colors">13 · 存取控制與權限</a>
+            </div>
+          </div>
+          <div>
+            <p class="text-xs text-neon mb-2">Ⅳ · 平台與擴充</p>
+            <div class="flex flex-col gap-1.5">
+              <a href="#plugins" class="text-slate-400 hover:text-neon transition-colors">14 · 插件系統</a>
+              <a href="#writeback" class="text-slate-400 hover:text-neon transition-colors">15 · 插件回寫 API</a>
+              <a href="#credits" class="text-slate-400 hover:text-neon transition-colors">16 · Credit 與配額限制</a>
+              <a href="#adminux" class="text-slate-400 hover:text-neon transition-colors">17 · 後台體驗</a>
+              <a href="#settings" class="text-slate-400 hover:text-neon transition-colors">18 · 系統設定與品牌</a>
+              <a href="#security" class="text-slate-400 hover:text-neon transition-colors">19 · 安全加固</a>
+              <a href="#infra" class="text-slate-400 hover:text-neon transition-colors">20 · 資料與基礎架構</a>
+              <a href="#ops" class="text-slate-400 hover:text-neon transition-colors">21 · 背景工作與營運</a>
+            </div>
+          </div>
+        </div>
+        <p class="mt-6 font-mono text-xs text-slate-500">// 每個 section 均標注實作它的原始碼大小 — 約 723 kB 的 Worker TypeScript ＋ SQL（worker），另加約 481 kB 的後台 view 與前端資產（views，含 115 kB vendored Liquid 引擎）。共用檔案只計一次，歸入其主要 section。</p>
+      </div>
+    </div>
+  </section>
+
+  <main class="relative max-w-6xl mx-auto px-5 sm:px-8 pb-24 space-y-8">
+
+    <!-- ═══════════ GROUP Ⅰ ═══════════ -->
+    <div class="reveal pt-2">
+      <p class="font-mono text-xs text-mint mb-2">// 群組 1 / 4</p>
+      <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Ⅰ · 內容編寫</h2>
+      <p class="mt-2 max-w-3xl text-slate-400">編寫的核心 — 內容如何建模、編輯、保留版本，以及即時協同編輯。</p>
+      <div class="mt-5 h-px bg-gradient-to-r from-mint/50 via-neon/25 to-transparent"></div>
+    </div>
+
+    <!-- 01 · CONTENT MODEL -->
+    <section id="content" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-mint/10 border border-mint/30 grid place-items-center text-lg">🧬</div>
+        <div>
+          <p class="font-mono text-xs text-mint mb-1">// 01</p>
+          <h2 class="text-2xl font-bold text-white">內容模型</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="27 kB worker ＋ 25 kB 欄位 snippet views">worker 27 kB · views 25 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">「Lect」結構化內容</b> — 每個頁面的主體都是一份具明確結構的 JSON：localized 欄位、scalar attribute（<code>@</code>）、page-reference pointer（<code>*</code>）、可重複的 <b>items</b>、可重用的 <b>blocks</b>（<code>_blocks</code>）及 <b>tags</b>（<code>_tags</code>）。<code>_type</code>、<code>_modifier</code>、<code>_pointers</code> 等 metadata 亦並列其中。</li>
+        <li><b class="text-white">Blueprint 驅動的 schema</b> — 頁面類型以 blueprint 宣告（欄位字串與巢狀 item map 的組合）；編輯器表單、搜尋路徑及 CSV header 全部由同一 blueprint 衍生。</li>
+        <li><b class="text-white">內建多語支援</b> — 預設語言集（<code>mis</code>、<code>en</code>、<code>zh-hant</code>、<code>zh-hans</code>），每個欄位都有 localized 值；語言按 request 選擇，並貫穿儲存／重載。</li>
+        <li><b class="text-white">18 種欄位類型</b>，由 Liquid snippet 渲染：<code>text</code>、<code>textarea</code>、<code>richtext</code>、<code>number</code>、<code>boolean</code>、<code>switch</code>、<code>checkbox</code>、<code>radio</code>、<code>select</code>、<code>date</code>、<code>time</code>、<code>color</code>、<code>email</code>、<code>tel</code>、<code>url</code>、<code>link</code>、<code>page</code>（page-reference combobox）及 <code>picture</code>。</li>
+        <li><b class="text-white">Page-reference 欄位</b> — 由 JSON API 支援的可搜尋 combobox，把一個頁面連結到另一個（按類型，以 name／slug 篩選）。</li>
+        <li><b class="text-white">頁面層級</b> — 頁面可設定 parent（<code>page_id</code>）形成樹狀結構；parent 選項可搜尋。</li>
+        <li><b class="text-white">排程視窗與時區</b> — 每個頁面帶可選的 <code>start</code>／<code>end</code> 時間戳及時區（UTC offset 或 IANA 名稱；預設可經 <code>DEFAULT_TIMEZONE</code> 設定）。</li>
+        <li><b class="text-white">Weight 排序</b> — 每頁可手動設定排序 weight，支援即時編輯及批量端點。</li>
+        <li><b class="text-white">舊格式正規化</b> — 較舊的「structured」JSON 形態會在讀取時自動遷移到現行 lect 模型。</li>
+        <li><b class="text-white">Lect 合併語意</b> — blueprint 預設 ← 已存內容 ← 傳入的部分內容，因此 API 呼叫方及匯入工具只需送出有改動的欄位。</li>
+      </ul>
+    </section>
+
+    <!-- 02 · EDITOR -->
+    <section id="editor" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-neon/10 border border-neon/30 grid place-items-center text-lg">✍️</div>
+        <div>
+          <p class="font-mono text-xs text-neon mb-1">// 02</p>
+          <h2 class="text-2xl font-bold text-white">頁面編輯器</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="97 kB worker ＋ 47 kB views">worker 97 kB · views 47 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">結構化編輯器 UI</b> — Tailwind ＋ vanilla-JS 的後台表單，會渲染每個 blueprint 欄位、item 列表及 block 列表，並附有 rich text 的內嵌 HTML 工具列。</li>
+        <li><b class="text-white">完整頁面 CRUD</b> — 建立（空白或 <code>create_by_type</code>）、編輯、更新及軟刪除，並自動產生 slug 且保證唯一。</li>
+        <li><b class="text-white">編輯器內結構化動作</b> — 無需離開頁面即可新增／移除／重排 items 與 blocks（伺服器套用結構化動作後重新渲染）。</li>
+        <li><b class="text-white">伺服器端驗證</b> — 以 <code>422</code> 及錯誤清單重新渲染表單，同時保留已輸入的值。</li>
+        <li><b class="text-white">插件 edit view</b> — 插件可接手它所擁有頁面類型的整個 edit/new 表單；CMS 把編輯器 context POST 給插件，並把回傳的 HTML fragment 包進後台 chrome。其表單會 POST 回正常的 CMS 儲存 handler，因此 versioning／發佈邏輯不變。</li>
+        <li><b class="text-white">優雅 fallback</b> — 若插件 edit view 回傳 404 或任何錯誤，就改用內建編輯器，因此半成品插件永遠無法把編輯者鎖在頁面之外。</li>
+        <li><b class="text-white">內建編輯器 escape hatch</b> — 在 URL 加上 <span class="kbd">?native=1</span>（或 <code>?editor=cms</code>），即可對本應由插件渲染的頁面強制使用內建編輯器；此旗標在驗證錯誤及儲存後重載時仍會保留。</li>
+        <li><b class="text-white">保留返回路徑</b> — 編輯器會記住你的來源（例如某插件 dashboard），儲存後 Back／Cancel 仍指向該處。</li>
+        <li><b class="text-white">唯讀頁面檢視</b> — <code>/pages/:id/read</code> 把同一份結構化內容渲染成靜態文字（無輸入欄、無 CRDT、無在席狀態），可安心查閱頁面而絕無誤改風險；擁有該頁面類型的插件亦可渲染此檢視，同樣支援 <span class="kbd">?native=1</span> fallback。</li>
+        <li><b class="text-white">私隱表格檢視</b> — 含 email／phone／mobile／fax 欄位的頁面類型，會以顧及私隱的方式渲染列表。</li>
+        <li><b class="text-white">修改者標示</b> — 解析並顯示最後編輯者的名字。</li>
+      </ul>
+    </section>
+
+    <!-- 03 · VERSIONING -->
+    <section id="versioning" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-plasma/10 border border-plasma/30 grid place-items-center text-lg">🗂️</div>
+        <div>
+          <p class="font-mono text-xs text-plasma mb-1">// 03</p>
+          <h2 class="text-2xl font-bold text-white">版本與歷史</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="獨立檔案僅 4 kB；大部分版本邏輯位於編輯器路由及回寫 API，計入該處">worker 4 kB +shared</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">每次儲存都有版本</b> — 每次 create/update 都會新增一筆 <code>page_versions</code>；<code>draft_pages.current_page_version_id</code> 指向使用中的版本。動作（create/update/publish/revert/restore）會被記錄。</li>
+        <li><b class="text-white">版本歷史面板</b> — 編輯器列出最近 20 個版本，附時間戳及動作。</li>
+        <li><b class="text-white">版本預覽</b> — 以唯讀方式打開任一歷史版本（<code>?version=…</code>），並與目前草稿比對差異。</li>
+        <li><b class="text-white">回復／還原</b> — 把頁面回退到任一先前版本；回復本身亦成為新版本（歷史只追加）。</li>
+        <li><b class="text-white">Live 版本指示</b> — 編輯器標示目前哪個已存版本與已發佈內容相符。</li>
+        <li><b class="text-white">歷史隨回收筒保留</b> — 版本 row 與 tag link 會隨頁面移入回收筒，還原時完整回來（id 保留）。</li>
+        <li><b class="text-white">插件及 API 寫入亦有版本</b> — 每次回寫 API 的 create/update/delete 都會新增版本並觸發對應的 lifecycle hook，與後台編輯器完全一致。</li>
+        <li><b class="text-white">自訂版本動作</b> — API 更新可在歷史中記錄自己的動作標籤（例如插件的業務動作「已簽到」），而不只是籠統的 <i>update</i>。</li>
+        <li><b class="text-white">刪除版本</b> — 移除單一版本，或一次過清理頁面的全部歷史（皆需確認）；current-version 指標會重新指向最新剩餘的版本。</li>
+        <li><b class="text-white">認得時區的歷史</b> — 版本時間戳以設定的預設時區格式化，而非原始 UTC。</li>
+      </ul>
+    </section>
+
+    <!-- 04 · REALTIME -->
+    <section id="realtime" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-mint/10 border border-mint/30 grid place-items-center text-lg">🛰️</div>
+        <div>
+          <p class="font-mono text-xs text-mint mb-1">// 04</p>
+          <h2 class="text-2xl font-bold text-white">即時協同編輯</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="10 kB Durable Object ＋ 14 kB client sync JS">worker 10 kB · views 14 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">每頁一個 Durable Object</b>（<code>PageSyncDO</code>）透過 WebSocket 協調並行編輯者，令團隊不會默默覆蓋彼此的工作。</li>
+        <li><b class="text-white">CRDT overlay 模型</b> — 一層 <i>未提交</i> 編輯的即時 overlay 疊在最後儲存的頁面之上。Op 以 <code>(欄位, 使用者)</code> 為單位儲存，因此可獨立丟棄某位編輯者的改動。</li>
+        <li><b class="text-white">以 HLC 決定 last-write-wins</b> — 每個欄位的有效值，是跨使用者中 hybrid logical clock 最高的 op。</li>
+        <li><b class="text-white">未儲存即離開的還原</b> — 當編輯者未儲存就斷線，其未提交的改動會被丟棄，每個受影響欄位回退到下一位編輯者的值，或已儲存的 baseline。</li>
+        <li><b class="text-white">儲存即提交 overlay</b> — 儲存會清掉未提交 op，並把已儲存的值推送為所有人的新 baseline（先儲存再離開絕不會回退）。</li>
+        <li><b class="text-white">欄位層級的在席標示</b> — 短暫的 focus/blur 訊號顯示每位協作者目前在哪個欄位（只作轉發，不儲存）。</li>
+        <li><b class="text-white">帶心跳的在席名單</b> — presence API 追蹤誰在頁面上（名字、頭像、last-seen／last-active），逾時項目 10 分鐘後自動過期。</li>
+        <li><b class="text-white">多分頁安全</b> — 只要使用者仍有任一連線（例如第二個分頁）開著，其 op 便會保留。</li>
+      </ul>
+    </section>
+
+
+    <!-- ═══════════ GROUP Ⅱ ═══════════ -->
+    <div class="reveal pt-2">
+      <p class="font-mono text-xs text-plasma mb-2">// 群組 2 / 4</p>
+      <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Ⅱ · 內容管理與發佈</h2>
+      <p class="mt-2 max-w-3xl text-slate-400">整理、搜尋、搬移內容，並發佈給每一位讀者。</p>
+      <div class="mt-5 h-px bg-gradient-to-r from-plasma/50 via-neon/25 to-transparent"></div>
+    </div>
+
+    <!-- 05 · PUBLISH -->
+    <section id="publish" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-neon/10 border border-neon/30 grid place-items-center text-lg">⛓️</div>
+        <div>
+          <p class="font-mono text-xs text-neon mb-1">// 05</p>
+          <h2 class="text-2xl font-bold text-white">發佈</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="adapter ＋ d1 ＋ r2 ＋插件目標，僅 worker 端">worker 19 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">Adapter 式發佈目標</b> — 一次發佈會建立單一頁面 snapshot（row ＋反正規化的 tag link），並分發到每個已設定的目標；取消發佈及刪除會以同樣方式從所有目標移除。</li>
+        <li><b class="text-white">草稿 ↔ 已發佈分離</b> — 草稿存於私有 CMS 資料庫；發佈會寫入一個 <b>獨立的已發佈資料庫</b>，可只把它給公開讀取的 Worker（無法存取 users、sessions、drafts 或 trash）。</li>
+        <li><b class="text-white">內建 <code>d1</code> 目標</b> — 以 <code>uuid</code> upsert <code>live_pages</code>／<code>live_page_tags</code>；取消發佈會刪除兩者。</li>
+        <li><b class="text-white">內建 <code>r2</code> 目標</b> — 寫出靜態 JSON：<code>pages/&lt;uuid&gt;.json</code>（完整 snapshot，lect 已解析）加上一份滾動的 <code>index.json</code>，列出所有 live 頁面。</li>
+        <li><b class="text-white">插件發佈目標</b> — 任何 manifest 宣告 <code>publishTarget: true</code> 的插件，會透過三個 POST 端點自動收到 publish/unpublish/tag-removal snapshot（IPFS pin、webhook、搜尋索引、靜態重建）。</li>
+        <li><b class="text-white">await 分發並回報部分失敗</b> — 發佈目標會被 await；個別目標失敗會被記錄並在編輯器 flash 顯示（<i>「已發佈，但這些目標失敗：…」</i>），而不阻塞成功的目標。</li>
+        <li><b class="text-white">發佈狀態徽章</b> — dashboard 從第一個可讀的目標讀取 live 狀態，逐頁顯示 draft/live。</li>
+        <li><b class="text-white">把已發佈頁面拉回草稿</b> — 將 live 頁面拉回草稿以供編輯（若無草稿則建立）。</li>
+        <li><b class="text-white">取消發佈及儲存時發佈</b> — 可直接在 dashboard 發佈，或在儲存時以 <code>publish</code> 動作發佈。</li>
+      </ul>
+    </section>
+
+    <!-- 06 · TAXONOMY -->
+    <section id="taxonomy" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-plasma/10 border border-plasma/30 grid place-items-center text-lg">🏷️</div>
+        <div>
+          <p class="font-mono text-xs text-plasma mb-1">// 06</p>
+          <h2 class="text-2xl font-bold text-white">分類與標籤</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="19 kB worker ＋ 15 kB views">worker 19 kB · views 15 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">Taxonomies（分類）</b> — 具名的分組（years、categories、topics、collections…），在其專屬後台管理（受 <code>taxonomy:write</code> 控制）。</li>
+        <li><b class="text-white">Tags（標籤）</b> — 分類之下的詞項，帶 localized 名稱、slug 及可選的 parent-tag 巢狀（受 <code>tag:write</code> 控制）。</li>
+        <li><b class="text-white">頁面↔標籤多對多連結</b> — tag 掛到草稿頁面上，並隨其貫穿發佈、回收筒及還原。</li>
+        <li><b class="text-white">內嵌 tag 指派 API</b> — 透過 JSON 端點新增／移除頁面的 tag（並更新頁面的 <code>updated_at</code>）。</li>
+        <li><b class="text-white">Tag 挑選器</b> — 出現在編輯器及進階搜尋中，按分類分組。</li>
+        <li><b class="text-white">Tag weight 與批量重排</b> — 每個 tag 可手動設定排序 weight，並有批量重排端點，一次呼叫即可為整個分類重新排序。</li>
+        <li><b class="text-white">以 slug 為 key 的分類</b> — tag 以 slug 引用其分類（改名安全）；插件定義的分類會與內建分類一同出現在 tag 後台。</li>
+      </ul>
+    </section>
+
+    <!-- 07 · SEARCH -->
+    <section id="search" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-mint/10 border border-mint/30 grid place-items-center text-lg">🔎</div>
+        <div>
+          <p class="font-mono text-xs text-mint mb-1">// 07</p>
+          <h2 class="text-2xl font-bold text-white">搜尋</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="62 kB worker（當中 45 kB 為中文簡繁變體表）＋ 23 kB views">worker 62 kB · views 23 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">進階多條件搜尋</b> — 以 <b>AND</b>、<b>OR</b> 或 <b>NOT</b> 運算子組合任意數量的條件。</li>
+        <li><b class="text-white">認得 blueprint 的欄位路徑</b> — 搜尋 lect JSON 內某個特定欄位（包括 <code>items[*].name</code> 這類 wildcard item 路徑），選項由每個頁面類型的 blueprint 自動填入。</li>
+        <li><b class="text-white">每條件的 tag 篩選</b> — 要求頁面帶有 <i>全部</i> 所選 tag（按分類分組）。</li>
+        <li><b class="text-white">中文搜尋變體</b> — 一個詞會自動同時比對其簡／繁對應。</li>
+        <li><b class="text-white">可限定範圍或全域</b> — 搜尋所有頁面類型或單一類型；可按 id/name/slug/weight/created/updated 排序，升序或降序，並分頁。</li>
+        <li><b class="text-white">SQLite JSON 查詢</b> — 路徑規格會編譯成安全、參數化的 <code>json_extract</code>／<code>json_each</code> SQL。</li>
+        <li><b class="text-white">快速搜尋框</b> — dashboard 上的搜尋框會導向進階搜尋表單。</li>
+      </ul>
+    </section>
+
+    <!-- 08 · MEDIA -->
+    <section id="media" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-neon/10 border border-neon/30 grid place-items-center text-lg">🗄️</div>
+        <div>
+          <p class="font-mono text-xs text-neon mb-1">// 08</p>
+          <h2 class="text-2xl font-bold text-white">媒體</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="路由＋上載驗證，僅 worker 端">worker 7 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">私有 R2 上載</b> — picture 欄位上載到私有 R2 bucket（永不公開）；Worker 在 <code>/media/&lt;key&gt;</code> 對每次讀取設閘，需有效 session。</li>
+        <li><b class="text-white">上載驗證</b> — 以 magic-byte header 嗅探及 content type 檢查檔案，並分別回傳 <code>413</code>（過大）／<code>415</code>（不支援）。</li>
+        <li><b class="text-white">安全、不碰撞的 key</b> — 消毒後的檔名 ＋ 按日期分區的路徑（<code>dir/YYYY/M/D/</code>）＋ 隨機 UUID 前綴。</li>
+        <li><b class="text-white">媒體 metadata 表</b> — 為每次上載記錄 key、URL、檔名、content type 及 size；上載會寫入 audit log。</li>
+        <li><b class="text-white">即時縮圖</b> — <code>/media-preview/&lt;key&gt;</code> 提供經 Cloudflare Image Resizing 最佳化的預覽（100×100 cover），若未啟用 transformation 則回退到原圖。</li>
+        <li><b class="text-white">限速並需權限</b> — 上載需 <code>media:upload</code>，並按 IP 限速。</li>
+      </ul>
+    </section>
+
+    <!-- 09 · IMPORT/EXPORT -->
+    <section id="importexport" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-plasma/10 border border-plasma/30 grid place-items-center text-lg">📥</div>
+        <div>
+          <p class="font-mono text-xs text-plasma mb-1">// 09</p>
+          <h2 class="text-2xl font-bold text-white">匯入／匯出整合</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="面向插件的 API，僅 worker 端">Plugin API</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">專用 import-export plugin</b> — CSV tools 現由 plugin 提供，不再置於 CMS core，令格式相關的 UI 及 workflow 可獨立部署。</li>
+        <li><b class="text-white">Content metadata endpoint</b> — <code>GET /__cms/content-meta</code> 提供受範圍限制的 page types、languages、taxonomies 及由 blueprint 衍生的 path specs，供 header 與 mapping 使用。</li>
+        <li><b class="text-white">批量目標解析</b> — 以最多 500 個 <code>ids</code> 或 <code>slugs</code> 列出 pages；JSON-array binds 可避開 D1 parameter limit。</li>
+        <li><b class="text-white">Tag ensuring</b> — <code>POST /__cms/tags/ensure</code> 可按 taxonomy 與 name 為批量匯入建立或解析 tags。</li>
+        <li><b class="text-white">原子批量建立</b> — import plugins 與其他 Plugin API callers 共用同一 single/batch create path，包括 scope checks、quotas、credits、version history 及 hooks。</li>
+      </ul>
+    </section>
+
+    <!-- 10 · RUNTIME SCHEMA -->
+    <section id="schema" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-mint/10 border border-mint/30 grid place-items-center text-lg">🧱</div>
+        <div>
+          <p class="font-mono text-xs text-mint mb-1">// 10</p>
+          <h2 class="text-2xl font-bold text-white">執行時頁面與區塊類型</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="28 kB worker ＋ 17 kB views">worker 28 kB · views 17 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">資料庫定義的頁面類型</b> — 於執行時建立／編輯／刪除頁面類型（受 <code>pagetype:write</code> 控制）：slug、name、blueprint（JSON）、可選的 block list 與 taxonomy list，以及 weight。新增內容類型毋須重新部署。</li>
+        <li><b class="text-white">資料庫定義的區塊類型</b> — 具自身欄位 blueprint 的可重用區塊定義（受 <code>blocktype:write</code> 控制）。</li>
+        <li><b class="text-white">統一類型後台</b> — page 與 block types 共用同一 CRUD route factory 及可重用的 list/form views，同時保留各自正確的 controls 與 copy。</li>
+        <li><b class="text-white">有效設定合併</b> — 程式碼預設、資料庫定義類型及插件貢獻類型，合併成單一 live 編輯器設定（每 isolate 快取）。</li>
+        <li><b class="text-white">插件貢獻的類型可見</b> — 插件註冊的頁面／區塊類型會以唯讀形式在後台出現，並標示貢獻的插件名稱。</li>
+        <li><b class="text-white">Available-classes 輔助</b> — 一個後台 snippet 列出插件／後台 fragment 可用的 Tailwind class 集。</li>
+      </ul>
+    </section>
+
+    <!-- 11 · TRASH -->
+    <section id="trash" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-neon/10 border border-neon/30 grid place-items-center text-lg">♻️</div>
+        <div>
+          <p class="font-mono text-xs text-neon mb-1">// 11</p>
+          <h2 class="text-2xl font-bold text-white">回收筒與還原</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="13 kB worker ＋ 8 kB views">worker 13 kB · views 8 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">軟刪除</b> — 刪除頁面會把它（連同版本歷史及 tag link）複製到回收筒，並保留 id，令日後還原保持同一身分，同時從每個目標取消發佈。</li>
+        <li><b class="text-white">回收筒瀏覽器</b> — 分頁列表，附逐類型篩選下拉、完整類型計數細分，及「過去一小時內丟棄」計數。</li>
+        <li><b class="text-white">還原到草稿</b> — 還原單一頁面（若 parent 仍在則重新連結），帶回版本歷史與 tag；legacy 回收筒 row 會取得一個全新的還原 snapshot。</li>
+        <li><b class="text-white">批量還原</b> — 可全部、按類型或只限過去一小時還原；以集合方式處理，令大量頁面（例如一個活動的所有頁面）也不會逾時（受 <code>trash:restore</code> 控制）。</li>
+        <li><b class="text-white">永久刪除／清空回收筒</b> — 清除單一 row，或清空全部／按類型／只限過去一小時（受 <code>trash:purge</code> 控制）。</li>
+        <li><b class="text-white">可稽核</b> — 還原與清除動作會寫入 audit log。</li>
+      </ul>
+    </section>
+
+
+    <!-- ═══════════ GROUP Ⅲ ═══════════ -->
+    <div class="reveal pt-2">
+      <p class="font-mono text-xs text-neon mb-2">// 群組 3 / 4</p>
+      <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Ⅲ · 存取與身分</h2>
+      <p class="mt-2 max-w-3xl text-slate-400">誰能進入 CMS，以及每個帳戶確切可做甚麼。</p>
+      <div class="mt-5 h-px bg-gradient-to-r from-neon/50 via-plasma/25 to-transparent"></div>
+    </div>
+
+    <!-- 12 · AUTH -->
+    <section id="auth" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-neon/10 border border-neon/30 grid place-items-center text-lg">🔐</div>
+        <div>
+          <p class="font-mono text-xs text-neon mb-1">// 12</p>
+          <h2 class="text-2xl font-bold text-white">驗證與身分</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="45 kB worker ＋ 4 kB views">worker 45 kB · views 4 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">OAuth 2.1 + PKCE 登入</b>（S256 code challenge），支援五個 provider：<b>GitHub</b>、<b>Google</b>、<b>Microsoft/Entra</b>、<b>Apple</b> 及自架的 <b>Eventuai</b>。登入頁會按 <code>ENABLED_PROVIDERS</code> 的次序，每個 provider 顯示一個按鈕。</li>
+        <li><b class="text-white">Provider 抽象層</b> 處理各 provider 的差異：Microsoft tenant 選擇（<code>common</code>／<code>organizations</code>／<code>consumers</code>／tenant id）、Apple <code>form_post</code> response mode，以及 ID-token 對 userinfo endpoint 兩種取得身分的方式。</li>
+        <li><b class="text-white">ID-token 驗證</b>（Apple）：在信任 claims 前，先核對 issuer、audience（client id）及 expiry。</li>
+        <li><b class="text-white">無狀態 PKCE 流程</b> — state ＋ code verifier ＋所選 provider 都放在已簽署、10 分鐘有效的 <code>oauth_state</code> JWT cookie（加 <code>__Host-</code> 前綴，secure origin 上為 <code>SameSite=None</code>），登入期間毋須任何伺服器端 session store。</li>
+        <li><b class="text-white">雙 JWT session</b>：短命的 15 分鐘 <b>access token</b> ＋可輪換的 7 日 <b>refresh token</b>，兩者皆以 Web Crypto API 作 HS256 簽署，並以 <code>httpOnly</code> cookie 儲存。</li>
+        <li><b class="text-white">Refresh token 可撤銷</b> — refresh JTI 經 SHA-256 hash 後存於 <code>sessions</code> 表；登出及輪換時會刪除，因此可在伺服器端使 token 失效。</li>
+        <li><b class="text-white">靜默 token 更新</b> — 透過 <code>POST /auth/refresh</code>（JSON）作 refresh token 輪換；後台頁面以 keepalive 維持 session。</li>
+        <li><b class="text-white">Session 衛生</b> — 每位使用者的並行 session 有上限，過期的 session row 會伺機清理（經 <code>waitUntil</code>，不阻塞回應）。</li>
+        <li><b class="text-white">多 provider 帳戶連結</b> — 可在個人檔案頁或 <code>/auth/start?provider=…&amp;link=1</code> 把額外 provider 連結到同一 CMS 帳戶；系統不會僅因電郵相同就默默合併已登出的帳戶。</li>
+        <li><b class="text-white">身分表</b>（<code>user_oauth_identities</code>）將多個 provider 身分對應到同一使用者，並為未 backfill 的資料庫保留 <code>oauth_id</code> legacy fallback。</li>
+        <li><b class="text-white">可選的註冊白名單</b> — <code>ALLOWED_EMAIL_DOMAINS</code> 限制誰可建立新帳戶；已連結的現有使用者永遠通過，設定改動不會把任何人鎖在門外。</li>
+        <li><b class="text-white">首次登入時配置角色</b> — IdP 提供的角色只在首次建立帳戶時套用；之後登入會更新 profile 欄位，但絕不覆寫 CMS 角色，因此後台的角色改動會保留。</li>
+        <li><b class="text-white">憑證端點限速</b> — <code>/auth/start</code>、<code>/auth/callback</code> 及 <code>/auth/refresh</code> 均按 IP 限速。</li>
+        <li><b class="text-white">弱密鑰保護</b> — 若 <code>JWT_SECRET</code> 缺失或少於 32 字元，Worker（在 localhost 以外）會拒絕服務，令人無法偽造後台 token。</li>
+      </ul>
+    </section>
+
+    <!-- 13 · RBAC -->
+    <section id="rbac" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-plasma/10 border border-plasma/30 grid place-items-center text-lg">🛡️</div>
+        <div>
+          <p class="font-mono text-xs text-plasma mb-1">// 13</p>
+          <h2 class="text-2xl font-bold text-white">存取控制與權限</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="28 kB worker ＋ 14 kB views">worker 28 kB · views 14 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">以能力為本的授權</b> — 路由要求特定 <i>權限</i>（例如 <code>content:publish</code>），而不只是「是不是 editor」。使用者的有效權限，是其持有所有角色的聯集（角色以逗號分隔）。</li>
+        <li><b class="text-white">四個內建角色</b>，採最小權限矩陣：<b>admin</b>（全部，永不會被鎖死）、<b>editor</b>（完整內容生命週期、分類、媒體、匯入 — 不含 purge／插件）、<b>moderator</b>（僅發佈、軟刪除、還原）及 <b>viewer</b>（無後台權限；被 editor guard 擋在 <code>/admin</code> 之外）。</li>
+        <li><b class="text-white">16 項細緻權限</b>：<code>content:read/write/publish/delete/import</code>、<code>trash:restore/purge</code>、<code>tag:write</code>、<code>taxonomy:write</code>、<code>media:upload</code>、<code>plugin:access/manage</code>、<code>pagetype:write</code>、<code>blocktype:write</code>、<code>users:manage</code>、<code>roles:manage</code>。</li>
+        <li><b class="text-white">自訂及可調整的角色</b> — Roles 後台（受 <code>roles:manage</code> 控制）可建立自訂角色，並以帶說明的挑選器編輯任何角色的權限集。受管理的角色明確擁有自己的權限集；<b>admin</b> 永遠全能且不可編輯（防鎖死）。</li>
+        <li><b class="text-white">以資料庫為準的權限解析</b> — 疊加於程式碼預設之上，並以每 isolate 快取（60 秒 TTL）。</li>
+        <li><b class="text-white">使用者管理</b>（受 <code>users:manage</code> 控制）— 列出使用者、檢視已連結身分，並指派角色。</li>
+        <li><b class="text-white">插件貢獻的權限</b> — 插件可宣告帶命名空間的權限（例如 <code>events:manage</code>），這些權限會在 Roles 後台出現，供授予自訂角色。</li>
+      </ul>
+    </section>
+
+
+    <!-- ═══════════ GROUP Ⅳ ═══════════ -->
+    <div class="reveal pt-2">
+      <p class="font-mono text-xs text-neon mb-2">// 群組 4 / 4</p>
+      <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Ⅳ · 平台與擴充</h2>
+      <p class="mt-2 max-w-3xl text-slate-400">插件平台、credit 收費與配額、後台外殼、執行時系統設定、安全加固，以及底層的邊緣基礎架構。</p>
+      <div class="mt-5 h-px bg-gradient-to-r from-neon/50 via-plasma/25 to-transparent"></div>
+    </div>
+
+    <!-- 14 · PLUGINS -->
+    <section id="plugins" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-plasma/10 border border-plasma/30 grid place-items-center text-lg">🧩</div>
+        <div>
+          <p class="font-mono text-xs text-plasma mb-1">// 14</p>
+          <h2 class="text-2xl font-bold text-white">插件系統</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="82 kB worker ＋ 19 kB views">worker 82 kB · views 19 kB</span>
+      </div>
+      <p class="text-sm text-slate-400 mb-4 leading-relaxed">每個插件都是獨立的 Cloudflare Worker，透過 HTTPS 在 <code>{url}/__plugin/…</code> 觸達。CMS 會發現插件、快取其 manifest，並在每次呼叫時轉發已登入使用者及一個共用 secret。插件可加入八類擴充：</p>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">Lifecycle hook</b> — 在頁面 create / update / publish / unpublish / delete 時執行（webhook、外部索引、快取清除、通知）。Hook 屬盡力而為，絕不阻塞編輯器。</li>
+        <li><b class="text-white">內容類型</b> — 註冊新的 blueprint／blocks／block-list／taxonomy-list，合併進編輯器設定。</li>
+        <li><b class="text-white">欄位與區塊</b> — 註冊新的 pagefield 類型並提供其 Liquid snippet，透過 CMS 編輯器渲染。</li>
+        <li><b class="text-white">Edit view</b> — 為所擁有的頁面類型渲染整個 edit/new 表單（見 §02）。</li>
+        <li><b class="text-white">後台路由 ＋ nav</b> — 加入一個代理於 <code>/admin/plugins/&lt;id&gt;/…</code> 的後台頁面及一個 nav 項目；nav 項目可置於 Settings 群組之下，並按角色限制顯示。</li>
+        <li><b class="text-white">發佈目標</b> — 宣告 <code>publishTarget: true</code> 即可收到發佈 snapshot（見 §05）。</li>
+        <li><b class="text-white">配額限制</b> — 宣告可由管理員設定的上限，限制某類型頁面的數量（見 §16）。</li>
+        <li><b class="text-white">Credit 收費</b> — 宣告可收費的動作，從使用者的 credit 餘額扣賬（見 §16）。</li>
+      </ul>
+      <div class="h-px bg-white/10 my-6"></div>
+      <p class="font-mono text-xs text-plasma mb-3">// registry 與安全</p>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">執行時註冊（毋須重新部署）</b> — 在管理後台以 URL 註冊／啟用／停用／設定插件（受 <code>plugin:manage</code> 控制），存於 <code>plugins</code> 表。Manifest 會自動發現並快取。</li>
+        <li><b class="text-white">逐插件 secret</b> — 每個插件都有自己產生的共用 secret（回退到 env <code>PLUGIN_SECRET</code>），因此可獨立輪換或撤銷某個插件而不影響其他。</li>
+        <li><b class="text-white">後台代理</b> — 插件後台頁面代理於 CMS origin 之下，包進後台 chrome，並套用嚴格 nonce CSP（受 <code>plugin:access</code> 控制）。完整文件的插件回應可選擇以 same-origin iframe 顯示。</li>
+        <li><b class="text-white">SSRF 防護</b> — 若插件 URL 解析到明顯的 private／loopback／link-local（含 cloud metadata <code>169.254.169.254</code>）／CGNAT／<code>.internal</code> 字面位址，會被拒絕。</li>
+        <li><b class="text-white">已核准的靜態資產</b> — 插件可提供在 CMS chrome 內執行的 JS/CSS（例如 camera scanner），但管理員必須明確核准每個路徑，並釘住其 SRI（sha384）內容 hash，才能通過消毒。</li>
+        <li><b class="text-white">委派的頁面類型存取</b> — 配套插件可為它並不擁有的頁面類型申請 <code>readTypes</code>／<code>writeTypes</code>；管理員須核准每個委派範圍，CMS 方會遵從。範圍可以是 wildcard <code>*</code>，獲核准後即涵蓋所有頁面類型。</li>
+        <li><b class="text-white">帶版本的插件 view 檔</b> — 插件 view／資產檔以 immutable、以 revision 為 key 的快取提供。</li>
+        <li><b class="text-white">未用時零負擔</b> — 未設定任何插件時，系統不增加任何開銷。</li>
+      </ul>
+    </section>
+
+    <!-- 15 · WRITE-BACK API -->
+    <section id="writeback" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-neon/10 border border-neon/30 grid place-items-center text-lg">🔁</div>
+        <div>
+          <p class="font-mono text-xs text-neon mb-1">// 15</p>
+          <h2 class="text-2xl font-bold text-white">插件回寫 API <span class="text-slate-500 font-mono text-sm">/__cms</span></h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="單一 55 kB 路由模組，僅 worker 端">worker 55 kB</span>
+      </div>
+      <p class="text-sm text-slate-400 mb-4 leading-relaxed">一條反向的 server-to-server 通道（以逐插件 secret 驗證，位於瀏覽器驗證堆疊之外），令插件自家網域上面向訪客的流程 — 公開 RSVP 提交、QR 簽到、批量聯絡人匯入 — 可讀寫它所擁有或獲委派的 CMS 頁面。</p>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">受範圍限制的讀寫</b> — 呼叫方以 <code>x-plugin-id</code> 表明身分；寫入僅限其 manifest 頁面類型加管理員核准的 <code>writeTypes</code>，讀取亦可觸及已核准的 <code>readTypes</code>。</li>
+        <li><b class="text-white">列出／讀取頁面</b> — 按類型分頁列出，支援 name/slug/lect 搜尋（含中文變體）、parent 篩選及 lect-pointer 篩選（單值或多值 <code>IN</code>）。</li>
+        <li><b class="text-white">支援大型 lookup 的讀取</b> — 直接 <code>ids</code>/<code>slugs</code> lookup 及 <code>include_tags=1</code> list 使用 JSON-array binds，支援最多 500 個值而不超出 D1 的 100-parameter limit。</li>
+        <li><b class="text-white">進階搜尋端點</b> — <code>POST /pages/search</code> 接受與後台進階搜尋相同的多條件語意（AND/OR/NOT 運算子、blueprint 欄位路徑、tag 篩選、中文變體），限於呼叫方可讀的類型，每頁最多 500 筆。</li>
+        <li><b class="text-white">建立與批量建立</b> — 單筆及最多 100 頁的批量建立共用同一流程，處理 validation、ID/parent resolution、quotas、credits、DB writes 及 hooks；批量保留 all-or-nothing 的 limits/credits 語意，並回報逐項 errors。</li>
+        <li><b class="text-white">部分更新</b> — PUT/PATCH 只合併送出的欄位（blueprint ← 已存 ← 傳入），重新產生版本，並提交 live overlay；更新可為其產生的版本標上自訂動作字串。</li>
+        <li><b class="text-white">批量發佈</b> — <code>POST /pages/publish</code> 透過標準 target pipeline 發佈最多 100 個 draft page ID，強制呼叫方的 page-type scope、拒絕無效或重複 ID、逐項回報 target failure，並觸發 publish hooks。</li>
+        <li><b class="text-white">認得 credit 與配額</b> — 有定價的頁面類型會在寫入前扣賬（餘額不足回傳 <code>402</code> 並附成本細項；寫入失敗會自動退款），配額限制亦在每次建立（單筆或批量）時強制執行（見 §16）。</li>
+        <li><b class="text-white">伺服器端批量複製</b> — 以 lect pointer 或 parent id 複製一組相關集合（例如某活動的賓客），套用統一的 lect 轉換（丟棄 key、合併覆寫），以有界 chunk 處理並回傳續傳 cursor，令任意大的清單可分多個 request 完成複製。</li>
+        <li><b class="text-white">伺服器端批量刪除</b> — 軟刪除一組相關集合（按 pointer 或 parent），以及按 id 清單批量刪除，兩者皆分 chunk 且可以 cursor 續傳。</li>
+        <li><b class="text-white">帶版本、可稽核、可觀察</b> — 每次 create/update/delete 都會新增頁面版本、寫入歸屬於 <code>plugin:&lt;id&gt;</code> 的 audit row，並向其他插件觸發 lifecycle hook。</li>
+        <li><b class="text-white">留意 subrequest 額度</b> — batch 大小及每次呼叫上限，皆調校至留在 Workers 免費方案的 subrequest 限制之內。</li>
+      </ul>
+    </section>
+
+    <!-- 16 · CREDITS & QUOTAS -->
+    <section id="credits" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-mint/10 border border-mint/30 grid place-items-center text-lg">💳</div>
+        <div>
+          <p class="font-mono text-xs text-mint mb-1">// 16</p>
+          <h2 class="text-2xl font-bold text-white">Credit 與配額限制</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="26 kB worker ＋ 7 kB views">worker 26 kB · views 7 kB</span>
+      </div>
+      <p class="text-sm text-slate-400 mb-4 leading-relaxed">為插件讓使用者做的事計量或收費。插件的 manifest 負責<i>宣告</i>可收費動作與配額限制，管理員負責<i>設定</i>價格與上限，host 則在每條頁面建立路徑上<i>強制執行</i> — 後台編輯器與回寫 API 一視同仁，任何一道門都無法用來繞過另一道。</p>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">每使用者餘額與只追加的賬本</b> — 每位使用者都有 credit 餘額；每次變動都會追加一筆 <code>credit_ledger</code>（delta、變動後餘額、動作、實體、插件、備註、執行者），賬本永遠能解釋餘額。</li>
+        <li><b class="text-white">Manifest 宣告的收費</b> — <code>page_create</code> 收費由 host 在該類型頁面每次建立時自動扣賬；<code>metered</code> 收費由插件經 <code>POST /__cms/credits/charge</code> 回報，用於 host 觀察不到的動作（例如發送 EDM）。</li>
+        <li><b class="text-white">管理員設定價格</b> — Plugins → Credits 畫面為每項宣告的收費定價（0 ＝ 明確免費）；未設定的收費回退到 manifest 預設。若多個插件為同一頁面類型定價，有效成本是<i>總和</i>。</li>
+        <li><b class="text-white">結構上不可透支</b> — 賬本 INSERT 與餘額 UPDATE 共用 <code>credits ≥ amount</code> 防護，在同一個 D1 batch（交易）內執行，並行消費永遠不會令餘額變負數；成功與否以 <code>RETURNING</code> 驗證。</li>
+        <li><b class="text-white">402 附成本細項、自動退款</b> — 餘額不足會拒絕建立並逐項列出定價部分；若已扣賬的操作在下游失敗，會盡力退款並記錄為獨立賬本項。</li>
+        <li><b class="text-white">管理員增減</b> — <code>users:manage</code> 可調整任何餘額，備註必填並寫入 audit log；個人檔案頁顯示分頁賬本，側欄顯示你的即時餘額。</li>
+        <li><b class="text-white">可設定的配額限制</b> — 插件宣告某類型頁面數量的上限，範圍可以是 <b>total</b>、<b>per-parent</b> 或 <b>per-pointer</b>（例如每個活動的賓客數）；管理員設定數值，或明確標記為無上限。</li>
+        <li><b class="text-white">批量安全的強制執行</b> — 會超過配額的批量建立或匯入會被整批拒絕，絕不半途套用；違規會回傳指向該限制、人類可讀的訊息。</li>
+        <li><b class="text-white">受範圍限制的宣告</b> — 插件只能為其擁有或獲委派（已核准）的頁面類型定價或設限；宣告會被驗證、去重，每插件上限 20 項，惡意 manifest 無法封鎖或向其他插件的內容收費。</li>
+      </ul>
+    </section>
+
+    <!-- 17 · ADMIN UX -->
+    <section id="adminux" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-plasma/10 border border-plasma/30 grid place-items-center text-lg">🖥️</div>
+        <div>
+          <p class="font-mono text-xs text-plasma mb-1">// 17</p>
+          <h2 class="text-2xl font-bold text-white">後台體驗</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="86 kB worker ＋ 268 kB views 與前端資產（含 115 kB vendored Liquid 引擎＋ 45 kB 編譯 CSS）">worker 86 kB · views 268 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">Liquid 模板後台 UI</b> — 由專屬 views binding 提供的伺服器渲染 section／template，配合已編譯的 Tailwind CSS 及少量 vanilla-JS 增強（table filter、color tag、私隱表格、client render）。</li>
+        <li><b class="text-white">Dashboard</b> — 分頁頁面列表，附 All／Draft／Live 狀態篩選、逐類型子清單（<code>/pages/list/:type</code>）、live 發佈徽章、快速搜尋及匯入／匯出捷徑。</li>
+        <li><b class="text-white">顏色標記</b> — 一個內嵌挑選器把顏色（紅／橙／黃／綠／藍／紫／灰，或無）指派給頁面，寫入頁面的一個 <code>lect</code> attribute。這只是輕量視覺標記 — 與 taxonomy tag 無關 — 用於 dashboard 上一眼可辨的列顏色標示及 client-side 篩選。</li>
+        <li><b class="text-white">Flash 訊息</b> — 每個動作的結果都透過 redirect 帶出。</li>
+        <li><b class="text-white">個人檔案頁</b> — 檢視你的帳戶、已連結身分，並可開始連結額外 provider。</li>
+        <li><b class="text-white">Settings 群組導覽</b> — 插件 nav 項目及後台 section 可置於 Settings 群組之下。</li>
+        <li><b class="text-white">Session keepalive</b> — 你工作期間保持後台 session 熱著。</li>
+        <li><b class="text-white">自動收起的流動版 header</b> — 細屏幕上後台 header 會隨捲動收起，把整個 viewport 留給內容。</li>
+        <li><b class="text-white">側欄 credit 餘額</b> — 你的即時 credit 餘額顯示在側欄（見 §16）。</li>
+        <li><b class="text-white">可設定的品牌</b> — App 名稱與圖示來自系統設定（見 §18），顯示於側欄及登入頁；亦有逐類型帶標題的檢視。</li>
+        <li><b class="text-white">Dashboard 品牌連結</b> — desktop 及 mobile admin navigation 內已設定的 site title 和 icon 可直接連到 <code>/admin</code>。</li>
+        <li><b class="text-white">自訂 404 及 500 頁</b> — 由 views 層渲染。</li>
+      </ul>
+    </section>
+
+    <!-- 18 · SYSTEM SETTINGS -->
+    <section id="settings" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-neon/10 border border-neon/30 grid place-items-center text-lg">🎛️</div>
+        <div>
+          <p class="font-mono text-xs text-neon mb-1">// 18</p>
+          <h2 class="text-2xl font-bold text-white">系統設定與品牌</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="17 kB worker ＋ 10 kB views">worker 17 kB · views 10 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">App 品牌</b> — 於執行時為後台 App 改名及挑選圖示；兩者都顯示在側欄及登入頁。毋須重新部署，即可為每個部署把 CMS 白牌化。</li>
+        <li><b class="text-white">側欄選單管理</b> — 顯示／隱藏及調整每個內建 nav 項目<i>以及</i>每個插件 nav 項目的 weight，包括 Settings 群組本身的 weight；System 項目永遠保持可見，你不可能把自己隱藏到設定之外（防鎖死）。</li>
+        <li><b class="text-white">可設定的後台首頁</b> — 把登入後的落地頁指向任何 <code>/admin</code> 路徑（例如某插件的 dashboard），而非預設的頁面列表。</li>
+        <li><b class="text-white">Key-value 設定儲存</b> — 單一個具 upsert 語意的 <code>settings</code> 表，支撐品牌、選單佈局、後台首頁、插件 credit 價格及插件配額數值。</li>
+      </ul>
+    </section>
+
+    <!-- 19 · SECURITY -->
+    <section id="security" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-mint/10 border border-mint/30 grid place-items-center text-lg">🔒</div>
+        <div>
+          <p class="font-mono text-xs text-mint mb-1">// 19</p>
+          <h2 class="text-2xl font-bold text-white">安全加固</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="獨立檔案僅 9 kB；大部分安全執行位於驗證、插件及媒體程式碼內，計入該處">worker 9 kB +shared</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">嚴格 CSP 加每 request nonce</b> — <code>default-src 'self'</code>、以 nonce 控制的 script、<code>base-uri 'none'</code>、<code>object-src 'none'</code>、<code>frame-ancestors 'none'</code>；個別路由可選擇啟用 <code>wasm-unsafe-eval</code>（例如 zxing camera scanner）或 same-origin framing。</li>
+        <li><b class="text-white">每個回應都有安全 header</b> — HSTS（preload，1 年）、<code>X-Content-Type-Options: nosniff</code>、<code>Referrer-Policy: same-origin</code>，以及預設的 <code>X-Frame-Options: DENY</code>。</li>
+        <li><b class="text-white">fail-closed 跨來源修改防護</b> — 非安全方法會被拒絕，除非有瀏覽器訊號（Origin、Referer 或 <code>Sec-Fetch-Site: same-origin</code>）正面證明是 same-origin；無 header 的用戶端必須送出相符的 Origin。以 secret 驗證的 <code>/__cms</code> 通道則刻意豁免。</li>
+        <li><b class="text-white">Canonical host 強制</b> — 對非 canonical host 的 request，GET/HEAD 回 308 導向、修改請求回 404，防止 host 混淆。</li>
+        <li><b class="text-white">鎖緊的 Permissions-Policy</b> — camera／microphone／geolocation 預設拒絕；逐路由選擇性啟用。</li>
+        <li><b class="text-white">敏感路徑 no-store</b> — <code>/admin</code> 及 <code>/auth</code> 回應設 <code>Cache-Control: no-store</code>。</li>
+        <li><b class="text-white">單次使用的 admin submit token</b> — 已簽署的逐 form <code>_cms_once</code> token 會在 D1 作原子 claim 以阻止重複 POST；下游失敗時會釋放 claim，讓正常 retry 仍可完成。</li>
+        <li><b class="text-white">插件 fragment 消毒</b> — 代理的插件 HTML 在嚴格 nonce CSP 下執行並被消毒；除非以已核准、hash 釘住的資產提供，否則內嵌 script 一律移除。</li>
+        <li><b class="text-white">逐 IP 限速</b> — 在驗證及上載端點（Workers Rate Limiting binding）。</li>
+        <li><b class="text-white">Audit log</b> — 敏感動作（匯入、媒體上載、還原、清除、插件寫入）都記錄誰對哪個實體做了甚麼。</li>
+        <li><b class="text-white">預設私有的資料分離</b> — 公開讀取方可只獲得已發佈資料庫，完全無法存取 auth、sessions、drafts 或 trash。</li>
+      </ul>
+    </section>
+
+    <!-- 20 · INFRA -->
+    <section id="infra" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-neon/10 border border-neon/30 grid place-items-center text-lg">🌐</div>
+        <div>
+          <p class="font-mono text-xs text-neon mb-1">// 20</p>
+          <h2 class="text-2xl font-bold text-white">資料與基礎架構</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="router ＋共用 types ＋ schema migration，僅 worker 端">worker 46 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">100% 邊緣原生</b> — 單一 Cloudflare Worker（Hono router），沒有 origin server，也沒有需要看守的資料庫。</li>
+        <li><b class="text-white">兩個 D1 資料庫</b> — 一個私有 CMS store（auth、sessions、drafts、trash、taxonomy、versions、媒體 metadata、roles、plugins、jobs、approvals、settings、credit 賬本），及一個獨立的已發佈 store（<code>live_pages</code>／<code>live_page_tags</code>）。</li>
+        <li><b class="text-white">R2 物件儲存</b> — 一個私有媒體 bucket，加一個可選的靜態 JSON 發佈 bucket。</li>
+        <li><b class="text-white">Durable Objects</b> — 逐頁 WebSocket 協調器，以 SQLite 儲存 CRDT op 及在席狀態。</li>
+        <li><b class="text-white">Cloudflare Queues</b> — CMS 自有 queue，用於耐久的背景後台工作。</li>
+        <li><b class="text-white">帶版本的 migration</b> — 兩個資料庫皆有納入版控的 SQL migration（auth identity、admin job、plugin asset approval、plugin page-type approval、settings、tag weight 與 taxonomy slug、credits），並附本機一鍵 migrate script。</li>
+        <li><b class="text-white">認得部署 revision</b> — view 資產以 Worker version metadata（或手動 fallback）作 cache-bust，新部署即令已快取的 CSS/JS 失效。</li>
+        <li><b class="text-white">全程 Web Crypto</b> — JWT 簽署／驗證及 token hash 皆用平台 crypto API，無 Node 相依。</li>
+      </ul>
+    </section>
+
+    <!-- 21 · OPS -->
+    <section id="ops" class="reveal glass rounded-2xl p-7 sm:p-9 scroll-mt-28">
+      <div class="flex items-start gap-4 mb-5">
+        <div class="w-11 h-11 shrink-0 rounded-xl bg-plasma/10 border border-plasma/30 grid place-items-center text-lg">⚙️</div>
+        <div>
+          <p class="font-mono text-xs text-plasma mb-1">// 21</p>
+          <h2 class="text-2xl font-bold text-white">背景工作與營運</h2>
+        </div>
+        <span class="kbd ml-auto mt-1" title="jobs ＋ queue runner，僅 worker 端">worker 8 kB</span>
+      </div>
+      <ul class="feat-list space-y-2.5 text-sm text-slate-300 leading-relaxed">
+        <li><b class="text-white">耐久的後台工作</b> — 長時間的後台動作（例如大型插件複製／刪除請求）會排入 queue 並由 job runner 處理，於 <code>admin_jobs</code> 表追蹤，因此可撐過 request 逾時。</li>
+        <li><b class="text-white">回應路徑外的衛生工作</b> — session 上限／清理及 hook／audit 遞送皆經 <code>waitUntil</code>，絕不拖慢使用者 request。</li>
+        <li><b class="text-white">分 chunk、可續傳的批量操作</b> — 大型集合的複製／刪除／還原以 cursor 分批，以留在平台限制之內。</li>
+        <li><b class="text-white">盡力而為、不阻塞的整合</b> — lifecycle hook 及 audit 寫入為 fire-and-forget；發佈目標會被 await，但各自獨立地失敗。</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <!-- ───────────────────────── CTA ───────────────────────── -->
+  <section class="relative py-20">
+    <div class="glow-orb w-[30rem] h-[30rem] bg-plasma bottom-0 left-1/2 -translate-x-1/2"></div>
+    <div class="relative max-w-3xl mx-auto px-5 sm:px-8 text-center">
+      <div class="reveal glass rounded-3xl px-8 py-14 sm:px-14">
+        <p class="font-mono text-sm text-neon mb-4">// 親眼看它運行</p>
+        <h2 class="text-3xl sm:text-4xl font-bold text-white tracking-tight leading-tight">
+          以上每一項，都 <span class="gradient-text">已在邊緣運行。</span>
+        </h2>
+        <p class="mt-5 text-slate-400 text-lg">不用盲信這份清單 — 親自驗證。</p>
+        <div class="mt-9 flex flex-wrap items-center justify-center gap-4">
+          <a href="https://cms.eventuai.com" target="_blank" rel="noopener"
+             class="neon-btn inline-block px-9 py-4 rounded-xl bg-gradient-to-r from-neon/20 to-plasma/20 border border-neon/60 text-white font-bold font-mono text-lg">
+            開啟 0xCMS ↗
+          </a>
+          <a href="index.html" class="inline-block px-9 py-4 rounded-xl border border-white/15 text-slate-300 font-semibold font-mono hover:border-neon/50 hover:text-neon transition-colors">
+            ← 返回總覽
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── FOOTER ───────────────────────── -->
+  <footer class="border-t border-white/5 py-10">
+    <div class="max-w-7xl mx-auto px-5 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs text-slate-600">
+      <div class="flex items-center gap-2">
+        <span class="text-neon font-bold">0xCMS</span>
+        <span>— 邊緣原生內容管理。</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <a href="index.html" class="hover:text-neon transition-colors">總覽</a>
+        <a href="features.html" class="hover:text-neon transition-colors">完整功能</a>
+        <a href="page.html" class="hover:text-neon transition-colors">資料模型</a>
+        <a href="cms-update.html" class="hover:text-neon transition-colors">更新</a>
+        <a href="https://cms.eventuai.com" target="_blank" rel="noopener" class="hover:text-neon transition-colors">app ↗</a>
+      </div>
+      <div>建基於 <span class="text-plasma">Cloudflare Workers</span> ⚡</div>
+    </div>
+  </footer>
+
+  <script src="../app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+  <script src="../webgl-bg.js"></script>
+</body>
+</html>

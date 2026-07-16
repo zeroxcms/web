@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="zh-HK" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>0xCMS — Page 與 lect · 通用多語資料模型</title>
+  <meta name="description" content="了解 0xCMS 如何儲存內容：page record 與 lect，一種通用、輕 schema、多語 JSON 格式；以及 blueprint（schema）與 lect（document）的關係及擴充方式。" />
+  <link rel="alternate" hreflang="en" href="../page.html" />
+  <link rel="alternate" hreflang="zh-HK" href="page.html" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            void: '#05010f',
+            panel: '#0b0620',
+            neon: '#22d3ee',
+            plasma: '#a855f7',
+            mint: '#34d399',
+          },
+          fontFamily: {
+            mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+            sans: ['"Space Grotesk"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet" />
+  <style>
+    body { background-color: #05010f; }
+
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(168, 85, 247, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34, 211, 238, 0.07) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+    }
+
+    .glow-orb {
+      position: absolute;
+      border-radius: 9999px;
+      filter: blur(110px);
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    .gradient-text {
+      background: linear-gradient(100deg, #22d3ee 0%, #a855f7 50%, #34d399 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .glass {
+      background: rgba(15, 8, 36, 0.55);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(168, 85, 247, 0.18);
+    }
+
+    .glass-hover { transition: border-color .3s, transform .3s, box-shadow .3s; }
+    .glass-hover:hover {
+      border-color: rgba(34, 211, 238, 0.45);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px -12px rgba(34, 211, 238, 0.25);
+    }
+
+    .neon-btn {
+      box-shadow: 0 0 24px rgba(34, 211, 238, 0.35), inset 0 0 12px rgba(34, 211, 238, 0.15);
+      transition: box-shadow .3s, transform .2s;
+    }
+    .neon-btn:hover {
+      box-shadow: 0 0 44px rgba(34, 211, 238, 0.6), inset 0 0 18px rgba(34, 211, 238, 0.25);
+      transform: translateY(-2px);
+    }
+
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity .7s ease, transform .7s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+    .floaty { animation: float 7s ease-in-out infinite; }
+
+    @keyframes scan {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(400%); }
+    }
+    .scanline {
+      animation: scan 5s linear infinite;
+      background: linear-gradient(to bottom, transparent, rgba(34, 211, 238, 0.06), transparent);
+    }
+
+    .tick { color: #34d399; }
+
+    pre code { font-family: 'JetBrains Mono', monospace; }
+
+    ::selection { background: rgba(168, 85, 247, 0.45); color: #fff; }
+
+    html { scrollbar-color: #4c1d95 #05010f; }
+    html, body { overflow-x: hidden; }
+
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="font-sans text-slate-300 antialiased overflow-x-hidden">
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+  <!-- ───────────────────────── NAV ───────────────────────── -->
+  <header id="navbar" class="fixed top-0 inset-x-0 z-50 transition-all duration-300">
+    <nav class="max-w-7xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-2.5 group">
+        <span class="relative grid place-items-center w-9 h-9 rounded-lg bg-gradient-to-br from-neon/20 to-plasma/20 border border-plasma/40">
+          <span class="font-mono font-bold text-neon text-sm">0x</span>
+          <span aria-hidden="true" class="absolute -inset-px rounded-lg border border-neon/0 group-hover:border-neon/50 transition-colors">&nbsp;</span>
+        </span>
+        <span class="font-mono font-bold text-lg text-white tracking-tight">0x<span class="gradient-text">CMS</span></span>
+      </a>
+
+      <div class="hidden md:flex items-center gap-8 font-mono text-sm">
+        <a href="index.html#features" class="text-slate-400 hover:text-neon transition-colors">/功能</a>
+        <a href="index.html#architecture" class="text-slate-400 hover:text-neon transition-colors">/架構</a>
+        <a href="page.html" class="text-neon transition-colors">/資料模型</a>
+        <a href="index.html#get-started" class="text-slate-400 hover:text-neon transition-colors">/開始使用</a>
+        <a href="../page.html" hreflang="en" class="text-slate-400 hover:text-neon transition-colors">English</a>
+        <a href="https://cms.eventuai.com" target="_blank" rel="noopener"
+           class="neon-btn px-5 py-2 rounded-lg bg-neon/10 border border-neon/50 text-neon font-semibold">
+          開啟 App ↗
+        </a>
+      </div>
+
+      <button id="menu-btn" class="md:hidden text-slate-300 p-2" aria-label="切換選單">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </nav>
+
+    <!-- mobile menu -->
+    <div id="mobile-menu" class="hidden md:hidden glass mx-4 rounded-xl p-4 flex flex-col gap-3 font-mono text-sm">
+      <a href="index.html#features" class="text-slate-300 hover:text-neon py-1">/功能</a>
+      <a href="index.html#architecture" class="text-slate-300 hover:text-neon py-1">/架構</a>
+      <a href="page.html" class="text-neon py-1">/資料模型</a>
+      <a href="index.html#get-started" class="text-slate-300 hover:text-neon py-1">/開始使用</a>
+      <a href="../page.html" hreflang="en" class="text-slate-300 hover:text-neon py-1">English</a>
+      <a href="https://cms.eventuai.com" target="_blank" rel="noopener" class="text-neon font-semibold py-1">開啟 App ↗</a>
+    </div>
+  </header>
+
+  <!-- ───────────────────────── HERO ───────────────────────── -->
+  <section class="relative pt-36 pb-16 sm:pt-44">
+    <div class="grid-bg absolute inset-0"></div>
+    <div class="glow-orb w-[34rem] h-[34rem] bg-plasma top-[-8rem] left-[-10rem]"></div>
+    <div class="glow-orb w-[30rem] h-[30rem] bg-neon top-[6rem] right-[-8rem]"></div>
+
+    <div class="relative max-w-7xl mx-auto px-5 sm:px-8 grid lg:grid-cols-2 gap-14 items-center">
+      <div>
+        <a href="index.html" class="inline-flex items-center gap-2 font-mono text-xs text-slate-500 hover:text-neon transition-colors mb-6">← 返回 /首頁</a>
+        <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 font-mono text-xs text-mint mb-7">
+          <span aria-hidden="true" class="w-2 h-2 rounded-full bg-mint animate-pulse">&nbsp;</span>
+          資料模型 · page 與 lect
+        </div>
+
+        <h1 class="text-5xl sm:text-6xl font-bold text-white leading-[1.05] tracking-tight">
+          用同一種形狀<br />
+          <span class="gradient-text">承載所有內容。</span>
+        </h1>
+
+        <p class="mt-6 text-lg text-slate-400 max-w-xl leading-relaxed">
+          0xCMS 入面每一份內容都是一個 <span class="text-white font-semibold">page</span>，page 的 body 是一個 <span class="text-white font-semibold">lect</span> — 單一、輕 schema 的 JSON object，<span class="text-neon">通用</span>、<span class="text-plasma">多語</span>，並且 <span class="text-mint">可無限擴充</span>。<span class="text-white font-semibold">blueprint</span> 描述形狀；lect 就是活的文件。
+        </p>
+
+        <div class="mt-9 flex flex-wrap items-center gap-4">
+          <a href="#lect" class="neon-btn px-7 py-3.5 rounded-xl bg-gradient-to-r from-neon/20 to-plasma/20 border border-neon/60 text-white font-semibold font-mono">
+            ▼ 認識 lect
+          </a>
+          <a href="#blueprint" class="px-7 py-3.5 rounded-xl glass glass-hover text-slate-200 font-mono font-semibold">
+            blueprint ⟷ lect
+          </a>
+        </div>
+      </div>
+
+      <!-- lect snapshot card -->
+      <div class="relative floaty">
+        <div class="absolute -inset-1 bg-gradient-to-r from-neon/30 via-plasma/30 to-mint/30 rounded-2xl blur-lg"></div>
+        <div class="relative glass rounded-2xl overflow-hidden">
+          <div class="relative overflow-hidden">
+            <div class="scanline absolute inset-x-0 h-24 pointer-events-none"></div>
+            <div class="flex items-center gap-2 px-5 py-3.5 border-b border-plasma/20">
+              <span aria-hidden="true" class="w-3 h-3 rounded-full bg-red-500/70">&nbsp;</span>
+              <span aria-hidden="true" class="w-3 h-3 rounded-full bg-yellow-500/70">&nbsp;</span>
+              <span aria-hidden="true" class="w-3 h-3 rounded-full bg-mint/70">&nbsp;</span>
+              <span class="ml-3 font-mono text-xs text-slate-500">draft_pages.lect — mail_list #2185…</span>
+            </div>
+            <div class="p-5 sm:p-6 font-mono text-[12.5px] leading-7 overflow-x-auto">
+<pre class="text-slate-400"><code>{
+  <span class="text-neon">"_type"</span>: <span class="text-mint">"mail_list"</span>,
+  <span class="text-neon">"_pointers"</span>: {
+    <span class="text-plasma">"event"</span>: <span class="text-mint">"21857528035279"</span>,
+    <span class="text-plasma">"edm"</span>:   <span class="text-mint">"21844625140640"</span>
+  },
+  <span class="text-plasma">"allow_checkin"</span>: <span class="text-mint">"yes"</span>,
+  <span class="text-plasma">"name"</span>: { <span class="text-neon/80">"en"</span>: <span class="text-mint">"01 FULL RUN"</span> },
+  <span class="text-neon">"_modifier"</span>: <span class="text-mint">1</span>,
+  <span class="text-neon">"_updated_at"</span>: <span class="text-mint">"2026-06-24T15:54Z"</span>
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── 01 · THE PAGE ───────────────────────── -->
+  <section id="page" class="relative py-20">
+    <div class="relative max-w-7xl mx-auto px-5 sm:px-8">
+      <div class="reveal max-w-2xl">
+        <p class="font-mono text-sm text-neon mb-3">// 01 — page</p>
+        <h2 class="text-4xl sm:text-5xl font-bold text-white tracking-tight">萬物皆是 <span class="gradient-text">page</span></h2>
+        <p class="mt-5 text-slate-400 text-lg">Page 是內容單位 — 可以是一個活動、一篇文章、一位嘉賓、一個 email template。少量結構化 metadata 會放在真實欄位，而實際內容全部放在一個 <code class="text-neon">lect</code> 欄位。</p>
+      </div>
+
+      <div class="mt-12 grid lg:grid-cols-2 gap-5 items-start">
+        <!-- columns card -->
+        <div class="reveal glass rounded-2xl p-7">
+          <h3 class="text-white font-semibold text-lg mb-4"><code class="text-neon">draft_pages</code> row</h3>
+          <div class="space-y-2.5 font-mono text-[13px]">
+            <div class="flex items-baseline gap-3"><span class="text-plasma w-28 shrink-0">uuid</span><span class="text-slate-500">穩定身份，發佈及還原後仍保留</span></div>
+            <div class="flex items-baseline gap-3"><span class="text-plasma w-28 shrink-0">name · slug</span><span class="text-slate-500">人類可讀標題及 URL key</span></div>
+            <div class="flex items-baseline gap-3"><span class="text-plasma w-28 shrink-0">page_type</span><span class="text-slate-500">由哪個 <span class="text-neon">blueprint</span> 定義 lect 形狀</span></div>
+            <div class="flex items-baseline gap-3"><span class="text-plasma w-28 shrink-0">page_id</span><span class="text-slate-500">父頁面（樹狀結構）</span></div>
+            <div class="flex items-baseline gap-3"><span class="text-plasma w-28 shrink-0">weight</span><span class="text-slate-500">同層排序</span></div>
+            <div class="flex items-baseline gap-3"><span class="text-plasma w-28 shrink-0">start · end · tz</span><span class="text-slate-500">可選發佈時段</span></div>
+            <div class="flex items-baseline gap-3"><span class="text-mint w-28 shrink-0">lect</span><span class="text-slate-300">⟵ JSON 內容 payload</span></div>
+            <div class="flex items-baseline gap-3"><span class="text-plasma w-28 shrink-0">…_version_id</span><span class="text-slate-500">append-only 歷史的目前 head</span></div>
+          </div>
+        </div>
+
+        <!-- lifecycle card -->
+        <div class="reveal glass rounded-2xl p-7">
+          <h3 class="text-white font-semibold text-lg mb-4">草稿 → 版本化 → 已發佈</h3>
+          <ul class="space-y-3 text-sm text-slate-400 leading-relaxed">
+            <li class="flex gap-3"><span class="tick mt-0.5">✔</span><span>編輯內容存在 <code class="text-plasma">draft_pages</code> — 私有，絕不公開。</span></li>
+            <li class="flex gap-3"><span class="tick mt-0.5">✔</span><span>每次儲存都把 lect snapshot 到 <code class="text-neon">page_versions</code> — 可回復到任一時間點。</span></li>
+            <li class="flex gap-3"><span class="tick mt-0.5">✔</span><span>發佈會把 lect 分發到 live targets（D1、靜態 JSON、插件）。</span></li>
+            <li class="flex gap-3"><span class="tick mt-0.5">✔</span><span>Blocks、nested items 及 tags <em>同樣</em> 是 lect — 由上到下都是同一形狀。</span></li>
+          </ul>
+          <p class="mt-5 font-mono text-xs text-slate-500 border-t border-white/5 pt-4">page : lect &nbsp;::&nbsp; record : document</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── 02 · THE LECT ───────────────────────── -->
+  <section id="lect" class="relative py-20">
+    <div class="glow-orb w-[26rem] h-[26rem] bg-plasma top-1/4 left-1/2 -translate-x-1/2"></div>
+    <div class="relative max-w-7xl mx-auto px-5 sm:px-8">
+      <div class="reveal text-center max-w-2xl mx-auto">
+        <p class="font-mono text-sm text-plasma mb-3">// 02 — lect</p>
+        <h2 class="text-4xl sm:text-5xl font-bold text-white tracking-tight">一種 <span class="gradient-text">通用</span> 內容格式</h2>
+        <p class="mt-5 text-slate-400 text-lg">lect 是一個帶有少量慣例的 JSON object。同一種形狀可表示 page、content block、repeatable item 或 tag — 因此 editor、renderer 及 plugins 都講同一種語言。</p>
+      </div>
+
+      <div class="mt-14 grid lg:grid-cols-2 gap-5 items-start">
+        <!-- anatomy -->
+        <div class="reveal space-y-4">
+          <div class="glass glass-hover rounded-2xl p-6">
+            <div class="font-mono text-neon text-sm mb-1">_type</div>
+            <p class="text-sm text-slate-400">標示這個 lect 跟隨哪個 blueprint — 例如 <code class="text-mint">"event"</code>、<code class="text-mint">"mail_list"</code>、某個 block type 等。</p>
+          </div>
+          <div class="glass glass-hover rounded-2xl p-6">
+            <div class="font-mono text-plasma text-sm mb-1">value fields &nbsp;<span class="text-slate-600">→ { lang: value }</span></div>
+            <p class="text-sm text-slate-400">人類文字以 <span class="text-white">language map</span> 儲存：<code class="text-mint">"name": { "en": "Gala", "zh-hant": "晚宴" }</code>。系統按 requested language resolve。</p>
+          </div>
+          <div class="glass glass-hover rounded-2xl p-6">
+            <div class="font-mono text-plasma text-sm mb-1">@ attributes &nbsp;<span class="text-slate-600">→ scalars</span></div>
+            <p class="text-sm text-slate-400">與語言無關的設定直接儲存：<code class="text-mint">"allow_checkin": "yes"</code>。在 blueprint 以 <code class="text-neon">@field</code> 宣告。</p>
+          </div>
+          <div class="glass glass-hover rounded-2xl p-6">
+            <div class="font-mono text-neon text-sm mb-1">_pointers &nbsp;<span class="text-slate-600">→ references</span></div>
+            <p class="text-sm text-slate-400">以 id 連到其他 pages：<code class="text-mint">"_pointers": { "event": "2185…" }</code>。屬於 soft relation，不需要 rigid foreign key。</p>
+          </div>
+          <div class="glass glass-hover rounded-2xl p-6">
+            <div class="font-mono text-neon text-sm mb-1">_blocks &nbsp;·&nbsp; items[]</div>
+            <p class="text-sm text-slate-400">有序的 <span class="text-white">nested lects</span> — content blocks（<code class="text-mint">_blocks</code>）及 repeatable groups（<code class="text-mint">"session": [ … ]</code>），每個都有自己的 <code class="text-neon">_type</code>、<code class="text-neon">_weight</code>、<code class="text-neon">_name</code>。</p>
+          </div>
+          <div class="glass glass-hover rounded-2xl p-6">
+            <div class="font-mono text-slate-400 text-sm mb-1">_modifier · _updated_at</div>
+            <p class="text-sm text-slate-400">CMS 與內容一起保留的 metadata。未知 keys 會原封不動保存 — 格式向前兼容。</p>
+          </div>
+        </div>
+
+        <!-- real example -->
+        <div class="reveal lg:sticky lg:top-24">
+          <div class="glass rounded-2xl overflow-hidden">
+            <div class="flex items-center gap-2 px-5 py-3 border-b border-plasma/20 font-mono text-xs text-slate-500">
+              <span class="text-mint">●</span> 活動頁面的 lect
+            </div>
+            <div class="p-5 sm:p-6 font-mono text-[12.5px] leading-7 overflow-x-auto">
+<pre class="text-slate-400"><code>{
+  <span class="text-neon">"_type"</span>: <span class="text-mint">"event"</span>,
+  <span class="text-plasma">"start"</span>: <span class="text-mint">"2026-06-25T19:00"</span>,
+  <span class="text-neon">"_pointers"</span>: { <span class="text-plasma">"venue"</span>: <span class="text-mint">"21857528035279"</span> },
+  <span class="text-plasma">"name"</span>:  { <span class="text-neon/80">"mis"</span>: <span class="text-mint">"Launch"</span>, <span class="text-neon/80">"zh-hant"</span>: <span class="text-mint">"發佈會"</span> },
+  <span class="text-plasma">"body"</span>:  { <span class="text-neon/80">"en"</span>: <span class="text-mint">"Join us at the edge…"</span> },
+  <span class="text-plasma">"session"</span>: [
+    {
+      <span class="text-neon">"_weight"</span>: <span class="text-mint">0</span>,
+      <span class="text-plasma">"start"</span>: <span class="text-mint">"19:00"</span>,
+      <span class="text-plasma">"name"</span>: { <span class="text-neon/80">"en"</span>: <span class="text-mint">"Keynote"</span> }
+    }
+  ],
+  <span class="text-neon">"_blocks"</span>: [
+    { <span class="text-neon">"_type"</span>: <span class="text-mint">"paragraph"</span>, <span class="text-neon">"_weight"</span>: <span class="text-mint">0</span>,
+      <span class="text-plasma">"body"</span>: { <span class="text-neon/80">"en"</span>: <span class="text-mint">"## Agenda…"</span> } }
+  ]
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── 03 · MULTI-LANGUAGE ───────────────────────── -->
+  <section id="i18n" class="relative py-20">
+    <div class="relative max-w-7xl mx-auto px-5 sm:px-8">
+      <div class="reveal text-center max-w-2xl mx-auto">
+        <p class="font-mono text-sm text-mint mb-3">// 03 — 多語</p>
+        <h2 class="text-4xl sm:text-5xl font-bold text-white tracking-tight">每個 value 預設都是 <span class="gradient-text">多語</span></h2>
+        <p class="mt-5 text-slate-400 text-lg">文字不是單一 flat string，而是按語言為 key 的 map。新增語言只需一行 config，不是 schema migration。讀者要求某語言時，resolver 會回傳該語言，否則 fallback 到中性 base。</p>
+      </div>
+
+      <div class="reveal mt-12 glass rounded-2xl p-7 sm:p-9">
+        <div class="grid md:grid-cols-2 gap-8 items-center">
+          <div class="font-mono text-sm overflow-x-auto">
+<pre class="text-slate-400"><code><span class="text-slate-500">// 一個欄位，所有語言</span>
+<span class="text-plasma">"name"</span>: {
+  <span class="text-neon/80">"mis"</span>:     <span class="text-mint">"Launch"</span>,   <span class="text-slate-600">// base / neutral</span>
+  <span class="text-neon/80">"en"</span>:      <span class="text-mint">"Launch"</span>,
+  <span class="text-neon/80">"zh-hant"</span>: <span class="text-mint">"發佈會"</span>,
+  <span class="text-neon/80">"zh-hans"</span>: <span class="text-mint">"发布会"</span>
+}</code></pre>
+          </div>
+          <div>
+            <h3 class="text-white font-semibold text-lg mb-3"><code class="text-neon">mis</code> base language</h3>
+            <p class="text-sm text-slate-400 leading-relaxed mb-4">0xCMS 預設提供 <code class="text-mint">languages: ['mis', 'en', 'zh-hant', 'zh-hans']</code>，並以 <code class="text-neon">mis</code> 為 default — 這是 ISO&nbsp;639 中代表 language-neutral base 的代碼。resolve 指定語言時，會先回傳該語言的 value，再 fallback 到 <code class="text-neon">mis</code>，最後 fallback 到任何已存在 value，所以部分翻譯也不會 render 空白。</p>
+            <div class="flex flex-wrap gap-2 font-mono text-xs">
+              <span class="px-2.5 py-1 rounded-md bg-neon/10 border border-neon/30 text-neon">mis</span>
+              <span class="px-2.5 py-1 rounded-md bg-plasma/10 border border-plasma/30 text-plasma">en</span>
+              <span class="px-2.5 py-1 rounded-md bg-mint/10 border border-mint/30 text-mint">zh-hant</span>
+              <span class="px-2.5 py-1 rounded-md bg-mint/10 border border-mint/30 text-mint">zh-hans</span>
+              <span class="px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-slate-400">+ 加入自己的語言</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── 04 · BLUEPRINT ⟷ LECT ───────────────────────── -->
+  <section id="blueprint" class="relative py-20">
+    <div class="glow-orb w-[28rem] h-[28rem] bg-neon top-10 right-[-10rem]"></div>
+    <div class="relative max-w-7xl mx-auto px-5 sm:px-8">
+      <div class="reveal text-center max-w-2xl mx-auto">
+        <p class="font-mono text-sm text-neon mb-3">// 04 — blueprint ⟷ lect</p>
+        <h2 class="text-4xl sm:text-5xl font-bold text-white tracking-tight">Schema 遇上 <span class="gradient-text">document</span></h2>
+        <p class="mt-5 text-slate-400 text-lg"><span class="text-white font-semibold">blueprint</span> 是一個小型 declarative array，用來描述 page type 的欄位。它是 schema；<span class="text-white font-semibold">lect</span> 是 document。Editor 讀取 blueprint 來 render 正確 widget，並由它 scaffold 空 lect — 但 lect 本身仍然是自由 JSON。</p>
+      </div>
+
+      <!-- side by side -->
+      <div class="reveal mt-14 grid lg:grid-cols-2 gap-5 items-stretch">
+        <div class="glass rounded-2xl overflow-hidden">
+          <div class="px-5 py-3 border-b border-plasma/20 font-mono text-xs text-plasma">blueprint &nbsp;<span class="text-slate-600">— 形狀（cms-config.ts）</span></div>
+          <div class="p-5 sm:p-6 font-mono text-[12.5px] leading-7 overflow-x-auto">
+<pre class="text-slate-400"><code>blueprint.<span class="text-neon">event</span> = [
+  <span class="text-mint">"@start:date/datetime"</span>,
+  <span class="text-mint">"*venue"</span>,
+  <span class="text-mint">"name:text/title"</span>,
+  <span class="text-mint">"body:richtext/md"</span>,
+  { <span class="text-plasma">session</span>: [ <span class="text-mint">"@start"</span>, <span class="text-mint">"name"</span> ] }
+]</code></pre>
+          </div>
+        </div>
+        <div class="glass rounded-2xl overflow-hidden">
+          <div class="px-5 py-3 border-b border-mint/20 font-mono text-xs text-mint">lect &nbsp;<span class="text-slate-600">— 符合該形狀的 document</span></div>
+          <div class="p-5 sm:p-6 font-mono text-[12.5px] leading-7 overflow-x-auto">
+<pre class="text-slate-400"><code>{
+  <span class="text-neon">"_type"</span>: <span class="text-mint">"event"</span>,
+  <span class="text-plasma">"start"</span>: <span class="text-mint">"2026-06-25T19:00"</span>,
+  <span class="text-neon">"_pointers"</span>: { <span class="text-plasma">"venue"</span>: <span class="text-mint">"2185…"</span> },
+  <span class="text-plasma">"name"</span>: { <span class="text-neon/80">"mis"</span>: <span class="text-mint">"Launch"</span> },
+  <span class="text-plasma">"body"</span>: { <span class="text-neon/80">"en"</span>: <span class="text-mint">"## Hi"</span> },
+  <span class="text-plasma">"session"</span>: [ { <span class="text-plasma">"start"</span>: <span class="text-mint">"19:00"</span>, <span class="text-plasma">"name"</span>: {…} } ]
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- token legend -->
+      <div class="reveal mt-6 glass rounded-2xl p-6 sm:p-8">
+        <p class="font-mono text-xs text-slate-500 mb-5">// blueprint tokens → 在 lect 中會變成甚麼</p>
+        <div class="grid sm:grid-cols-2 gap-x-10 gap-y-4 font-mono text-[13px]">
+          <div class="flex items-baseline gap-3"><span class="text-mint w-36 shrink-0">name</span><span class="text-slate-400">本地化 value → <span class="text-plasma">{ lang: value }</span></span></div>
+          <div class="flex items-baseline gap-3"><span class="text-mint w-36 shrink-0">@attr</span><span class="text-slate-400">scalar attribute → 直接 value</span></div>
+          <div class="flex items-baseline gap-3"><span class="text-mint w-36 shrink-0">*ref</span><span class="text-slate-400">pointer → <span class="text-neon">_pointers.ref</span></span></div>
+          <div class="flex items-baseline gap-3"><span class="text-mint w-36 shrink-0">field:renderer</span><span class="text-slate-400">同一 value，自訂 widget</span></div>
+          <div class="flex items-baseline gap-3"><span class="text-mint w-36 shrink-0">{ group: [ … ] }</span><span class="text-slate-400">repeatable items → lect array</span></div>
+          <div class="flex items-baseline gap-3"><span class="text-mint w-36 shrink-0">blockLists</span><span class="text-slate-400">可用 blocks → <span class="text-neon">_blocks[]</span></span></div>
+        </div>
+        <p class="mt-6 text-sm text-slate-400 leading-relaxed border-t border-white/5 pt-5">
+          一個 blueprint 可塑造 <span class="text-white">多個</span> lect。Blueprint 指引 editor 並填入預設值，但不會鎖死 document：lect 可以帶有 blueprint 從未提及的 keys，所以插件可存放自己的資料（例如 <code class="text-mint">sent_edm</code> log、額外 <code class="text-mint">_pointers.event</code>），round-trip 後仍保持不變。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── 05 · EXTEND ───────────────────────── -->
+  <section id="extend" class="relative py-20">
+    <div class="relative max-w-7xl mx-auto px-5 sm:px-8">
+      <div class="reveal text-center max-w-2xl mx-auto">
+        <p class="font-mono text-sm text-plasma mb-3">// 05 — 擴充</p>
+        <h2 class="text-4xl sm:text-5xl font-bold text-white tracking-tight">毋須 migration 也可 <span class="gradient-text">擴展模型</span></h2>
+        <p class="mt-5 text-slate-400 text-lg">因為內容存在 declarative blueprint 背後的 JSON，擴充模型只需 additive change — 不用 <code class="text-neon">ALTER TABLE</code>，不用 downtime。</p>
+      </div>
+
+      <div class="mt-14 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="reveal glass glass-hover rounded-2xl p-7">
+          <div class="w-11 h-11 rounded-xl bg-neon/10 border border-neon/30 grid place-items-center font-mono text-neon mb-5">＋</div>
+          <h3 class="text-white font-semibold text-lg mb-2">新增欄位</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">在 blueprint array 加一個 token。它會即時出現在 editor 及新 lect；現有 lect 只是暫時沒有該 key。</p>
+        </div>
+        <div class="reveal glass glass-hover rounded-2xl p-7">
+          <div class="w-11 h-11 rounded-xl bg-plasma/10 border border-plasma/30 grid place-items-center font-mono text-plasma mb-5">🌐</div>
+          <h3 class="text-white font-semibold text-lg mb-2">新增語言</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">在 <code class="text-mint">languages</code> 加一個 code。每個 value field 本來已是 map，譯者只需填入新 key — 沒有欄位會被鎖成單語。</p>
+        </div>
+        <div class="reveal glass glass-hover rounded-2xl p-7">
+          <div class="w-11 h-11 rounded-xl bg-mint/10 border border-mint/30 grid place-items-center font-mono text-mint mb-5">🎛️</div>
+          <h3 class="text-white font-semibold text-lg mb-2">新增 widget</h3>
+          <p class="text-sm text-slate-400 leading-relaxed"><code class="text-mint">field:renderer</code> 會 resolve 到 <code class="text-neon/80">/snippets/pagefield/&lt;renderer&gt;</code> 的 Liquid snippet。放入 template 就可推出新 field type — date picker、地圖、markdown。</p>
+        </div>
+        <div class="reveal glass glass-hover rounded-2xl p-7">
+          <div class="w-11 h-11 rounded-xl bg-neon/10 border border-neon/30 grid place-items-center font-mono text-neon mb-5">🧱</div>
+          <h3 class="text-white font-semibold text-lg mb-2">新增 block</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">在 <code class="text-mint">blocks</code> 註冊 block type，並在 <code class="text-mint">blockList</code> 列出。Editor 會把 blocks 疊入 <code class="text-neon">_blocks[]</code> — 每個都是 nested lect。</p>
+        </div>
+        <div class="reveal glass glass-hover rounded-2xl p-7">
+          <div class="w-11 h-11 rounded-xl bg-plasma/10 border border-plasma/30 grid place-items-center font-mono text-plasma mb-5">🔗</div>
+          <h3 class="text-white font-semibold text-lg mb-2">連結 pages</h3>
+          <p class="text-sm text-slate-400 leading-relaxed"><code class="text-mint">*pointer</code> 以 id 把一個 page 連到另一個 page — 可把 EDM 及 guest list 歸到活動之下、引用 venue — 全部都是 <code class="text-neon">_pointers</code> 裏的 soft relation。</p>
+        </div>
+        <div class="reveal glass glass-hover rounded-2xl p-7">
+          <div class="w-11 h-11 rounded-xl bg-mint/10 border border-mint/30 grid place-items-center font-mono text-mint mb-5">🧩</div>
+          <h3 class="text-white font-semibold text-lg mb-2">透過插件擴充</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">插件 Worker 可透過 HTTPS 向 effective config 注入完整 page types、blocks 及 field snippets — 新內容形狀 <span class="text-white">毋須重新部署 CMS</span>。</p>
+        </div>
+      </div>
+
+      <div class="reveal mt-10 glass rounded-2xl p-6 sm:p-8">
+        <div class="flex flex-wrap items-center justify-center gap-x-10 gap-y-4 font-mono text-xs sm:text-sm text-slate-400">
+          <span class="text-slate-500">為何撐得住：</span>
+          <span><span class="tick">✔</span> 輕 schema JSON</span>
+          <span><span class="tick">✔</span> 保留未知 keys</span>
+          <span><span class="tick">✔</span> 同一形狀：page · block · item · tag</span>
+          <span><span class="tick">✔</span> additive，毋須 migration</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── CTA ───────────────────────── -->
+  <section class="relative py-24">
+    <div class="glow-orb w-[30rem] h-[30rem] bg-plasma bottom-0 left-1/2 -translate-x-1/2"></div>
+    <div class="relative max-w-3xl mx-auto px-5 sm:px-8 text-center">
+      <div class="reveal glass rounded-3xl px-8 py-14 sm:px-14">
+        <p class="font-mono text-sm text-neon mb-4">// 到 editor 看看</p>
+        <h2 class="text-4xl sm:text-5xl font-bold text-white tracking-tight leading-tight">
+          形狀很簡單。<br/><span class="gradient-text">延展力不簡單。</span>
+        </h2>
+        <p class="mt-5 text-slate-400 text-lg">打開 live editor，看看 blueprint 如何 render 成多語 lect。</p>
+        <div class="mt-9 flex flex-wrap items-center justify-center gap-4">
+          <a href="https://cms.eventuai.com" target="_blank" rel="noopener"
+             class="neon-btn inline-block px-10 py-4 rounded-xl bg-gradient-to-r from-neon/20 to-plasma/20 border border-neon/60 text-white font-bold font-mono text-lg">
+            開啟 0xCMS ↗
+          </a>
+          <a href="index.html#get-started" class="px-8 py-4 rounded-xl glass glass-hover text-slate-200 font-mono font-semibold">$ 開始使用</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── FOOTER ───────────────────────── -->
+  <footer class="border-t border-white/5 py-10">
+    <div class="max-w-7xl mx-auto px-5 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs text-slate-600">
+      <div class="flex items-center gap-2">
+        <span class="text-neon font-bold">0xCMS</span>
+        <span>— 邊緣原生內容管理。</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <a href="index.html#features" class="hover:text-neon transition-colors">功能</a>
+        <a href="page.html" class="hover:text-neon transition-colors">資料模型</a>
+        <a href="index.html#get-started" class="hover:text-neon transition-colors">文件</a>
+        <a href="https://cms.eventuai.com" target="_blank" rel="noopener" class="hover:text-neon transition-colors">app ↗</a>
+      </div>
+      <div>建基於 <span class="text-plasma">Cloudflare Workers</span> ⚡</div>
+    </div>
+  </footer>
+
+  <script src="../app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+  <script src="../webgl-bg.js"></script>
+</body>
+</html>

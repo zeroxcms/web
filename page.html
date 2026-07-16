@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>0xCMS — Page &amp; lect · the universal, multilingual data model</title>
+  <meta name="description" content="How 0xCMS stores content: the page record and its lect — a universal, schema-light, multi-language JSON format — plus the relationship between a blueprint (the schema) and a lect (the document), and how to extend it." />
+  <link rel="alternate" hreflang="en" href="page.html" />
+  <link rel="alternate" hreflang="zh-HK" href="zh-hk/page.html" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            void: '#05010f',
+            panel: '#0b0620',
+            neon: '#22d3ee',
+            plasma: '#a855f7',
+            mint: '#34d399',
+          },
+          fontFamily: {
+            mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+            sans: ['"Space Grotesk"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet" />
+  <style>
+    body { background-color: #05010f; }
+
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(168, 85, 247, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34, 211, 238, 0.07) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+    }
+
+    .glow-orb {
+      position: absolute;
+      border-radius: 9999px;
+      filter: blur(110px);
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    .gradient-text {
+      background: linear-gradient(100deg, #22d3ee 0%, #a855f7 50%, #34d399 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .glass {
+      background: rgba(15, 8, 36, 0.55);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(168, 85, 247, 0.18);
+    }
+
+    .glass-hover { transition: border-color .3s, transform .3s, box-shadow .3s; }
+    .glass-hover:hover {
+      border-color: rgba(34, 211, 238, 0.45);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px -12px rgba(34, 211, 238, 0.25);
+    }
+
+    .neon-btn {
+      box-shadow: 0 0 24px rgba(34, 211, 238, 0.35), inset 0 0 12px rgba(34, 211, 238, 0.15);
+      transition: box-shadow .3s, transform .2s;
+    }
+    .neon-btn:hover {
+      box-shadow: 0 0 44px rgba(34, 211, 238, 0.6), inset 0 0 18px rgba(34, 211, 238, 0.25);
+      transform: translateY(-2px);
+    }
+
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity .7s ease, transform .7s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+    .floaty { animation: float 7s ease-in-out infinite; }
+
+    @keyframes scan {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(400%); }
+    }
+    .scanline {
+      animation: scan 5s linear infinite;
+      background: linear-gradient(to bottom, transparent, rgba(34, 211, 238, 0.06), transparent);
+    }
+
+    .tick { color: #34d399; }
+
+    pre code { font-family: 'JetBrains Mono', monospace; }
+
+    ::selection { background: rgba(168, 85, 247, 0.45); color: #fff; }
+
+    html { scrollbar-color: #4c1d95 #05010f; }
+    html, body { overflow-x: hidden; }
+
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="font-sans text-slate-300 antialiased overflow-x-hidden">
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+  <!-- ───────────────────────── NAV ───────────────────────── -->
+  <header id="navbar" class="fixed top-0 inset-x-0 z-50 transition-all duration-300">
+    <nav class="max-w-7xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-2.5 group">
+        <span class="relative grid place-items-center w-9 h-9 rounded-lg bg-gradient-to-br from-neon/20 to-plasma/20 border border-plasma/40">
+          <span class="font-mono font-bold text-neon text-sm">0x</span>
+          <span aria-hidden="true" class="absolute -inset-px rounded-lg border border-neon/0 group-hover:border-neon/50 transition-colors">&nbsp;</span>
+        </span>
+        <span class="font-mono font-bold text-lg text-white tracking-tight">0x<span class="gradient-text">CMS</span></span>
+      </a>
+
+      <div class="hidden md:flex items-center gap-8 font-mono text-sm">
+        <a href="index.html#features" class="text-slate-400 hover:text-neon transition-colors">/features</a>
+        <a href="index.html#architecture" class="text-slate-400 hover:text-neon transition-colors">/architecture</a>
+        <a href="page.html" class="text-neon transition-colors">/data-model</a>
+        <a href="index.html#get-started" class="text-slate-400 hover:text-neon transition-colors">/get-started</a>
+        <a href="zh-hk/page.html" hreflang="zh-HK" class="text-slate-400 hover:text-neon transition-colors">繁中</a>
+        <a href="https://cms.eventuai.com" target="_blank" rel="noopener"
+           class="neon-btn px-5 py-2 rounded-lg bg-neon/10 border border-neon/50 text-neon font-semibold">
+          Launch App ↗
+        </a>
+      </div>
+
+      <button id="menu-btn" class="md:hidden text-slate-300 p-2" aria-label="Toggle menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </nav>
+
+    <!-- mobile menu -->
+    <div id="mobile-menu" class="hidden md:hidden glass mx-4 rounded-xl p-4 flex flex-col gap-3 font-mono text-sm">
+      <a href="index.html#features" class="text-slate-300 hover:text-neon py-1">/features</a>
+      <a href="index.html#architecture" class="text-slate-300 hover:text-neon py-1">/architecture</a>
+      <a href="page.html" class="text-neon py-1">/data-model</a>
+      <a href="index.html#get-started" class="text-slate-300 hover:text-neon py-1">/get-started</a>
+      <a href="zh-hk/page.html" hreflang="zh-HK" class="text-slate-300 hover:text-neon py-1">繁中</a>
+      <a href="https://cms.eventuai.com" target="_blank" rel="noopener" class="text-neon font-semibold py-1">Launch App ↗</a>
+    </div>
+  </header>
+
+  <!-- ───────────────────────── HERO ───────────────────────── -->
+  <section class="relative pt-36 pb-16 sm:pt-44">
+    <div class="grid-bg absolute inset-0"></div>
+    <div class="glow-orb w-[34rem] h-[34rem] bg-plasma top-[-8rem] left-[-10rem]"></div>
+    <div class="glow-orb w-[30rem] h-[30rem] bg-neon top-[6rem] right-[-8rem]"></div>
+
+    <div class="relative max-w-7xl mx-auto px-5 sm:px-8 grid lg:grid-cols-2 gap-14 items-center">
+      <div>
+        <a href="index.html" class="inline-flex items-center gap-2 font-mono text-xs text-slate-500 hover:text-neon transition-colors mb-6">← back to /home</a>
+        <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 font-mono text-xs text-mint mb-7">
+          <span aria-hidden="true" class="w-2 h-2 rounded-full bg-mint animate-pulse">&nbsp;</span>
+          the data model · page &amp; lect
+        </div>
+
+        <h1 class="text-5xl sm:text-6xl font-bold text-white leading-[1.05] tracking-tight">
+          One shape for<br />
+          <span class="gradient-text">all your content.</span>
+        </h1>
+
+        <p class="mt-6 text-lg text-slate-400 max-w-xl leading-relaxed">
+          Every piece of content in 0xCMS is a <span class="text-white font-semibold">page</span>, and a page's
+          body is a <span class="text-white font-semibold">lect</span> — a single, schema-light JSON object that is
+          <span class="text-neon">universal</span>, <span class="text-plasma">multi-language</span>, and
+          <span class="text-mint">endlessly extensible</span>. A <span class="text-white font-semibold">blueprint</span>
+          describes its shape; the lect is the living document.
+        </p>
+
+        <div class="mt-9 flex flex-wrap items-center gap-4">
+          <a href="#lect" class="neon-btn px-7 py-3.5 rounded-xl bg-gradient-to-r from-neon/20 to-plasma/20 border border-neon/60 text-white font-semibold font-mono">
+            ▼ meet the lect
+          </a>
+          <a href="#blueprint" class="px-7 py-3.5 rounded-xl glass glass-hover text-slate-200 font-mono font-semibold">
+            blueprint ⟷ lect
+          </a>
+        </div>
+      </div>
+
+      <!-- lect snapshot card -->
+      <div class="relative floaty">
+        <div class="absolute -inset-1 bg-gradient-to-r from-neon/30 via-plasma/30 to-mint/30 rounded-2xl blur-lg"></div>
+        <div class="relative glass rounded-2xl overflow-hidden">
+          <div class="relative overflow-hidden">
+            <div class="scanline absolute inset-x-0 h-24 pointer-events-none"></div>
+            <div class="flex items-center gap-2 px-5 py-3.5 border-b border-plasma/20">
+              <span aria-hidden="true" class="w-3 h-3 rounded-full bg-red-500/70">&nbsp;</span>
+              <span aria-hidden="true" class="w-3 h-3 rounded-full bg-yellow-500/70">&nbsp;</span>
+              <span aria-hidden="true" class="w-3 h-3 rounded-full bg-mint/70">&nbsp;</span>
+              <span class="ml-3 font-mono text-xs text-slate-500">draft_pages.lect — mail_list #2185…</span>
+            </div>
+            <div class="p-5 sm:p-6 font-mono text-[12.5px] leading-7 overflow-x-auto">
+<pre class="text-slate-400"><code>{
+  <span class="text-neon">"_type"</span>: <span class="text-mint">"mail_list"</span>,
+  <span class="text-neon">"_pointers"</span>: {
+    <span class="text-plasma">"event"</span>: <span class="text-mint">"21857528035279"</span>,
+    <span class="text-plasma">"edm"</span>:   <span class="text-mint">"21844625140640"</span>
+  },
+  <span class="text-plasma">"allow_checkin"</span>: <span class="text-mint">"yes"</span>,
+  <span class="text-plasma">"name"</span>: { <span class="text-neon/80">"en"</span>: <span class="text-mint">"01 FULL RUN"</span> },
+  <span class="text-neon">"_modifier"</span>: <span class="text-mint">1</span>,
+  <span class="text-neon">"_updated_at"</span>: <span class="text-mint">"2026-06-24T15:54Z"</span>
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── 01 · THE PAGE ───────────────────────── -->
+  <section id="page" class="relative py-20">
+    <div class="relative max-w-7xl mx-auto px-5 sm:px-8">
+      <div class="reveal max-w-2xl">
+        <p class="font-mono text-sm text-neon mb-3">// 01 — the page</p>
+        <h2 class="text-4xl sm:text-5xl font-bold text-white tracking-tight">Everything is a <span class="gradient-text">page</span></h2>
+        <p class="mt-5 text-slate-400 text-lg">A page is the unit of content — an event, an article, a guest, an email template. It carries a little structured metadata in real columns, and all of its actual content in one <code class="text-neon">lect</code> column.</p>
+      </div>
+
+      <div class="mt-12 grid lg:grid-cols-2 gap-5 items-start">
+        <!-- columns card -->
+        <div class="reveal glass rounded-2xl p-7">
+          <h3 class="text-white font-semibold text-lg mb-4">The <code class="text-neon">draft_pages</code> row</h3>
+          <div class="space-y-2.5 font-mono text-[13px]">
+            <div class="flex items-baseline gap-3"><span class="text-plasma w-28 shrink-0">uuid</span><span class="text-slate-500">stable identity, survives publish &amp; restore</span></div>
+            <div class="flex items-baseline gap-3"><span class="text-plasma w-28 shrink-0">name · slug</span><span class="text-slate-500">human title &amp; URL key</span></div>
+            <div class="flex items-baseline gap-3"><span class="text-plasma w-28 shrink-0">page_type</span><span class="text-slate-500">which <span class="text-neon">blueprint</span> shapes the lect</span></div>
+            <div class="flex items-baseline gap-3"><span class="text-plasma w-28 shrink-0">page_id</span><span class="text-slate-500">parent page (tree structure)</span></div>
+            <div class="flex items-baseline gap-3"><span class="text-plasma w-28 shrink-0">weight</span><span class="text-slate-500">sort order among siblings</span></div>
+            <div class="flex items-baseline gap-3"><span class="text-plasma w-28 shrink-0">start · end · tz</span><span class="text-slate-500">optional publish window</span></div>
+            <div class="flex items-baseline gap-3"><span class="text-mint w-28 shrink-0">lect</span><span class="text-slate-300">⟵ the JSON content payload</span></div>
+            <div class="flex items-baseline gap-3"><span class="text-plasma w-28 shrink-0">…_version_id</span><span class="text-slate-500">head of an append-only history</span></div>
+          </div>
+        </div>
+
+        <!-- lifecycle card -->
+        <div class="reveal glass rounded-2xl p-7">
+          <h3 class="text-white font-semibold text-lg mb-4">Draft → versioned → published</h3>
+          <ul class="space-y-3 text-sm text-slate-400 leading-relaxed">
+            <li class="flex gap-3"><span class="tick mt-0.5">✔</span><span>Edits live in <code class="text-plasma">draft_pages</code> — private, never public.</span></li>
+            <li class="flex gap-3"><span class="tick mt-0.5">✔</span><span>Every save snapshots the lect into <code class="text-neon">page_versions</code> — roll back to any point.</span></li>
+            <li class="flex gap-3"><span class="tick mt-0.5">✔</span><span>Publishing fans the lect out to live targets (D1, static JSON, plugins).</span></li>
+            <li class="flex gap-3"><span class="tick mt-0.5">✔</span><span>Blocks, nested items and tags are <em>also</em> lects — the same shape, all the way down.</span></li>
+          </ul>
+          <p class="mt-5 font-mono text-xs text-slate-500 border-t border-white/5 pt-4">page : lect &nbsp;::&nbsp; record : document</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── 02 · THE LECT ───────────────────────── -->
+  <section id="lect" class="relative py-20">
+    <div class="glow-orb w-[26rem] h-[26rem] bg-plasma top-1/4 left-1/2 -translate-x-1/2"></div>
+    <div class="relative max-w-7xl mx-auto px-5 sm:px-8">
+      <div class="reveal text-center max-w-2xl mx-auto">
+        <p class="font-mono text-sm text-plasma mb-3">// 02 — the lect</p>
+        <h2 class="text-4xl sm:text-5xl font-bold text-white tracking-tight">A <span class="gradient-text">universal</span> content format</h2>
+        <p class="mt-5 text-slate-400 text-lg">The lect is one JSON object with a handful of conventions. The same shape represents a page, a content block, a repeatable item, or a tag — so the editor, the renderer, and plugins all speak a single language.</p>
+      </div>
+
+      <div class="mt-14 grid lg:grid-cols-2 gap-5 items-start">
+        <!-- anatomy -->
+        <div class="reveal space-y-4">
+          <div class="glass glass-hover rounded-2xl p-6">
+            <div class="font-mono text-neon text-sm mb-1">_type</div>
+            <p class="text-sm text-slate-400">Names the blueprint this lect follows — <code class="text-mint">"event"</code>, <code class="text-mint">"mail_list"</code>, a block type, etc.</p>
+          </div>
+          <div class="glass glass-hover rounded-2xl p-6">
+            <div class="font-mono text-plasma text-sm mb-1">value fields &nbsp;<span class="text-slate-600">→ { lang: value }</span></div>
+            <p class="text-sm text-slate-400">Human text, stored as a <span class="text-white">language map</span>: <code class="text-mint">"name": { "en": "Gala", "zh-hant": "晚宴" }</code>. Resolved per requested language.</p>
+          </div>
+          <div class="glass glass-hover rounded-2xl p-6">
+            <div class="font-mono text-plasma text-sm mb-1">@ attributes &nbsp;<span class="text-slate-600">→ scalars</span></div>
+            <p class="text-sm text-slate-400">Language-agnostic settings stored bare: <code class="text-mint">"allow_checkin": "yes"</code>. Declared <code class="text-neon">@field</code> in the blueprint.</p>
+          </div>
+          <div class="glass glass-hover rounded-2xl p-6">
+            <div class="font-mono text-neon text-sm mb-1">_pointers &nbsp;<span class="text-slate-600">→ references</span></div>
+            <p class="text-sm text-slate-400">Links to other pages by id: <code class="text-mint">"_pointers": { "event": "2185…" }</code>. Soft relations — no rigid foreign keys.</p>
+          </div>
+          <div class="glass glass-hover rounded-2xl p-6">
+            <div class="font-mono text-neon text-sm mb-1">_blocks &nbsp;·&nbsp; items[]</div>
+            <p class="text-sm text-slate-400">Ordered <span class="text-white">nested lects</span> — content blocks (<code class="text-mint">_blocks</code>) and repeatable groups (<code class="text-mint">"session": [ … ]</code>), each with its own <code class="text-neon">_type</code>, <code class="text-neon">_weight</code>, <code class="text-neon">_name</code>.</p>
+          </div>
+          <div class="glass glass-hover rounded-2xl p-6">
+            <div class="font-mono text-slate-400 text-sm mb-1">_modifier · _updated_at</div>
+            <p class="text-sm text-slate-400">Metadata the CMS keeps alongside your content. Unknown keys are preserved untouched — the format is forward-compatible.</p>
+          </div>
+        </div>
+
+        <!-- real example -->
+        <div class="reveal lg:sticky lg:top-24">
+          <div class="glass rounded-2xl overflow-hidden">
+            <div class="flex items-center gap-2 px-5 py-3 border-b border-plasma/20 font-mono text-xs text-slate-500">
+              <span class="text-mint">●</span> lect of an event page
+            </div>
+            <div class="p-5 sm:p-6 font-mono text-[12.5px] leading-7 overflow-x-auto">
+<pre class="text-slate-400"><code>{
+  <span class="text-neon">"_type"</span>: <span class="text-mint">"event"</span>,
+  <span class="text-plasma">"start"</span>: <span class="text-mint">"2026-06-25T19:00"</span>,
+  <span class="text-neon">"_pointers"</span>: { <span class="text-plasma">"venue"</span>: <span class="text-mint">"21857528035279"</span> },
+  <span class="text-plasma">"name"</span>:  { <span class="text-neon/80">"mis"</span>: <span class="text-mint">"Launch"</span>, <span class="text-neon/80">"zh-hant"</span>: <span class="text-mint">"發佈會"</span> },
+  <span class="text-plasma">"body"</span>:  { <span class="text-neon/80">"en"</span>: <span class="text-mint">"Join us at the edge…"</span> },
+  <span class="text-plasma">"session"</span>: [
+    {
+      <span class="text-neon">"_weight"</span>: <span class="text-mint">0</span>,
+      <span class="text-plasma">"start"</span>: <span class="text-mint">"19:00"</span>,
+      <span class="text-plasma">"name"</span>: { <span class="text-neon/80">"en"</span>: <span class="text-mint">"Keynote"</span> }
+    }
+  ],
+  <span class="text-neon">"_blocks"</span>: [
+    { <span class="text-neon">"_type"</span>: <span class="text-mint">"paragraph"</span>, <span class="text-neon">"_weight"</span>: <span class="text-mint">0</span>,
+      <span class="text-plasma">"body"</span>: { <span class="text-neon/80">"en"</span>: <span class="text-mint">"## Agenda…"</span> } }
+  ]
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── 03 · MULTI-LANGUAGE ───────────────────────── -->
+  <section id="i18n" class="relative py-20">
+    <div class="relative max-w-7xl mx-auto px-5 sm:px-8">
+      <div class="reveal text-center max-w-2xl mx-auto">
+        <p class="font-mono text-sm text-mint mb-3">// 03 — multi-language</p>
+        <h2 class="text-4xl sm:text-5xl font-bold text-white tracking-tight">Every value is <span class="gradient-text">multilingual</span> by default</h2>
+        <p class="mt-5 text-slate-400 text-lg">Text isn't a flat string — it's a map keyed by language. Adding a language is a config line, not a schema migration. A reader asks for a language; the resolver returns it, falling back to the neutral base.</p>
+      </div>
+
+      <div class="reveal mt-12 glass rounded-2xl p-7 sm:p-9">
+        <div class="grid md:grid-cols-2 gap-8 items-center">
+          <div class="font-mono text-sm overflow-x-auto">
+<pre class="text-slate-400"><code><span class="text-slate-500">// one field, every language</span>
+<span class="text-plasma">"name"</span>: {
+  <span class="text-neon/80">"mis"</span>:     <span class="text-mint">"Launch"</span>,   <span class="text-slate-600">// base / neutral</span>
+  <span class="text-neon/80">"en"</span>:      <span class="text-mint">"Launch"</span>,
+  <span class="text-neon/80">"zh-hant"</span>: <span class="text-mint">"發佈會"</span>,
+  <span class="text-neon/80">"zh-hans"</span>: <span class="text-mint">"发布会"</span>
+}</code></pre>
+          </div>
+          <div>
+            <h3 class="text-white font-semibold text-lg mb-3">The <code class="text-neon">mis</code> base language</h3>
+            <p class="text-sm text-slate-400 leading-relaxed mb-4">0xCMS ships with <code class="text-mint">languages: ['mis', 'en', 'zh-hant', 'zh-hans']</code> and a default of <code class="text-neon">mis</code> — the ISO&nbsp;639 code for a language-neutral base. Resolution for a requested language returns that language's value, then falls back to <code class="text-neon">mis</code>, then to any value present, so partial translations never render blank.</p>
+            <div class="flex flex-wrap gap-2 font-mono text-xs">
+              <span class="px-2.5 py-1 rounded-md bg-neon/10 border border-neon/30 text-neon">mis</span>
+              <span class="px-2.5 py-1 rounded-md bg-plasma/10 border border-plasma/30 text-plasma">en</span>
+              <span class="px-2.5 py-1 rounded-md bg-mint/10 border border-mint/30 text-mint">zh-hant</span>
+              <span class="px-2.5 py-1 rounded-md bg-mint/10 border border-mint/30 text-mint">zh-hans</span>
+              <span class="px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-slate-400">+ add your own</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── 04 · BLUEPRINT ⟷ LECT ───────────────────────── -->
+  <section id="blueprint" class="relative py-20">
+    <div class="glow-orb w-[28rem] h-[28rem] bg-neon top-10 right-[-10rem]"></div>
+    <div class="relative max-w-7xl mx-auto px-5 sm:px-8">
+      <div class="reveal text-center max-w-2xl mx-auto">
+        <p class="font-mono text-sm text-neon mb-3">// 04 — blueprint ⟷ lect</p>
+        <h2 class="text-4xl sm:text-5xl font-bold text-white tracking-tight">Schema meets <span class="gradient-text">document</span></h2>
+        <p class="mt-5 text-slate-400 text-lg">A <span class="text-white font-semibold">blueprint</span> is a tiny declarative array that describes a page type's fields. It is the schema; the <span class="text-white font-semibold">lect</span> is the document. The editor reads the blueprint to render the right widgets, and scaffolds an empty lect from it — but the lect itself stays free-form JSON.</p>
+      </div>
+
+      <!-- side by side -->
+      <div class="reveal mt-14 grid lg:grid-cols-2 gap-5 items-stretch">
+        <div class="glass rounded-2xl overflow-hidden">
+          <div class="px-5 py-3 border-b border-plasma/20 font-mono text-xs text-plasma">blueprint &nbsp;<span class="text-slate-600">— the shape (cms-config.ts)</span></div>
+          <div class="p-5 sm:p-6 font-mono text-[12.5px] leading-7 overflow-x-auto">
+<pre class="text-slate-400"><code>blueprint.<span class="text-neon">event</span> = [
+  <span class="text-mint">"@start:date/datetime"</span>,
+  <span class="text-mint">"*venue"</span>,
+  <span class="text-mint">"name:text/title"</span>,
+  <span class="text-mint">"body:richtext/md"</span>,
+  { <span class="text-plasma">session</span>: [ <span class="text-mint">"@start"</span>, <span class="text-mint">"name"</span> ] }
+]</code></pre>
+          </div>
+        </div>
+        <div class="glass rounded-2xl overflow-hidden">
+          <div class="px-5 py-3 border-b border-mint/20 font-mono text-xs text-mint">lect &nbsp;<span class="text-slate-600">— a document of that shape</span></div>
+          <div class="p-5 sm:p-6 font-mono text-[12.5px] leading-7 overflow-x-auto">
+<pre class="text-slate-400"><code>{
+  <span class="text-neon">"_type"</span>: <span class="text-mint">"event"</span>,
+  <span class="text-plasma">"start"</span>: <span class="text-mint">"2026-06-25T19:00"</span>,
+  <span class="text-neon">"_pointers"</span>: { <span class="text-plasma">"venue"</span>: <span class="text-mint">"2185…"</span> },
+  <span class="text-plasma">"name"</span>: { <span class="text-neon/80">"mis"</span>: <span class="text-mint">"Launch"</span> },
+  <span class="text-plasma">"body"</span>: { <span class="text-neon/80">"en"</span>: <span class="text-mint">"## Hi"</span> },
+  <span class="text-plasma">"session"</span>: [ { <span class="text-plasma">"start"</span>: <span class="text-mint">"19:00"</span>, <span class="text-plasma">"name"</span>: {…} } ]
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- token legend -->
+      <div class="reveal mt-6 glass rounded-2xl p-6 sm:p-8">
+        <p class="font-mono text-xs text-slate-500 mb-5">// blueprint tokens → what they become in the lect</p>
+        <div class="grid sm:grid-cols-2 gap-x-10 gap-y-4 font-mono text-[13px]">
+          <div class="flex items-baseline gap-3"><span class="text-mint w-36 shrink-0">name</span><span class="text-slate-400">localized value → <span class="text-plasma">{ lang: value }</span></span></div>
+          <div class="flex items-baseline gap-3"><span class="text-mint w-36 shrink-0">@attr</span><span class="text-slate-400">scalar attribute → bare value</span></div>
+          <div class="flex items-baseline gap-3"><span class="text-mint w-36 shrink-0">*ref</span><span class="text-slate-400">pointer → <span class="text-neon">_pointers.ref</span></span></div>
+          <div class="flex items-baseline gap-3"><span class="text-mint w-36 shrink-0">field:renderer</span><span class="text-slate-400">same value, custom widget</span></div>
+          <div class="flex items-baseline gap-3"><span class="text-mint w-36 shrink-0">{ group: [ … ] }</span><span class="text-slate-400">repeatable items → array of lects</span></div>
+          <div class="flex items-baseline gap-3"><span class="text-mint w-36 shrink-0">blockLists</span><span class="text-slate-400">which blocks → <span class="text-neon">_blocks[]</span></span></div>
+        </div>
+        <p class="mt-6 text-sm text-slate-400 leading-relaxed border-t border-white/5 pt-5">
+          One blueprint shapes <span class="text-white">many</span> lects. The blueprint guides the editor and seeds defaults, but it never locks the document down: a lect can carry keys the blueprint never mentioned, so a plugin can stash its own data (a <code class="text-mint">sent_edm</code> log, an extra <code class="text-mint">_pointers.event</code>) and it round-trips untouched.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── 05 · EXTEND ───────────────────────── -->
+  <section id="extend" class="relative py-20">
+    <div class="relative max-w-7xl mx-auto px-5 sm:px-8">
+      <div class="reveal text-center max-w-2xl mx-auto">
+        <p class="font-mono text-sm text-plasma mb-3">// 05 — extend</p>
+        <h2 class="text-4xl sm:text-5xl font-bold text-white tracking-tight">Grow the model <span class="gradient-text">without migrations</span></h2>
+        <p class="mt-5 text-slate-400 text-lg">Because content lives in JSON behind a declarative blueprint, extending the model is additive — no <code class="text-neon">ALTER TABLE</code>, no downtime.</p>
+      </div>
+
+      <div class="mt-14 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="reveal glass glass-hover rounded-2xl p-7">
+          <div class="w-11 h-11 rounded-xl bg-neon/10 border border-neon/30 grid place-items-center font-mono text-neon mb-5">＋</div>
+          <h3 class="text-white font-semibold text-lg mb-2">Add a field</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">Append a token to the blueprint array. It shows up in the editor and in new lects instantly — existing lects simply don't have the key yet.</p>
+        </div>
+        <div class="reveal glass glass-hover rounded-2xl p-7">
+          <div class="w-11 h-11 rounded-xl bg-plasma/10 border border-plasma/30 grid place-items-center font-mono text-plasma mb-5">🌐</div>
+          <h3 class="text-white font-semibold text-lg mb-2">Add a language</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">Add a code to <code class="text-mint">languages</code>. Every value field is already a map, so translators just fill a new key — no field is ever single-language.</p>
+        </div>
+        <div class="reveal glass glass-hover rounded-2xl p-7">
+          <div class="w-11 h-11 rounded-xl bg-mint/10 border border-mint/30 grid place-items-center font-mono text-mint mb-5">🎛️</div>
+          <h3 class="text-white font-semibold text-lg mb-2">Add a widget</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">A <code class="text-mint">field:renderer</code> resolves to a Liquid snippet at <code class="text-neon/80">/snippets/pagefield/&lt;renderer&gt;</code>. Drop in a template to ship a new field type — date pickers, maps, markdown.</p>
+        </div>
+        <div class="reveal glass glass-hover rounded-2xl p-7">
+          <div class="w-11 h-11 rounded-xl bg-neon/10 border border-neon/30 grid place-items-center font-mono text-neon mb-5">🧱</div>
+          <h3 class="text-white font-semibold text-lg mb-2">Add a block</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">Register a block type in <code class="text-mint">blocks</code> and list it in a <code class="text-mint">blockList</code>. Editors stack blocks into <code class="text-neon">_blocks[]</code> — each one a nested lect.</p>
+        </div>
+        <div class="reveal glass glass-hover rounded-2xl p-7">
+          <div class="w-11 h-11 rounded-xl bg-plasma/10 border border-plasma/30 grid place-items-center font-mono text-plasma mb-5">🔗</div>
+          <h3 class="text-white font-semibold text-lg mb-2">Relate pages</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">A <code class="text-mint">*pointer</code> links one page to another by id — group EDMs and guest lists under an event, reference a venue — all soft relations in <code class="text-neon">_pointers</code>.</p>
+        </div>
+        <div class="reveal glass glass-hover rounded-2xl p-7">
+          <div class="w-11 h-11 rounded-xl bg-mint/10 border border-mint/30 grid place-items-center font-mono text-mint mb-5">🧩</div>
+          <h3 class="text-white font-semibold text-lg mb-2">Extend via plugins</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">A plugin Worker contributes whole page types, blocks and field snippets to the effective config over HTTPS — new content shapes with <span class="text-white">no CMS redeploy</span>.</p>
+        </div>
+      </div>
+
+      <div class="reveal mt-10 glass rounded-2xl p-6 sm:p-8">
+        <div class="flex flex-wrap items-center justify-center gap-x-10 gap-y-4 font-mono text-xs sm:text-sm text-slate-400">
+          <span class="text-slate-500">WHY IT HOLDS UP:</span>
+          <span><span class="tick">✔</span> schema-light JSON</span>
+          <span><span class="tick">✔</span> unknown keys preserved</span>
+          <span><span class="tick">✔</span> one shape: page · block · item · tag</span>
+          <span><span class="tick">✔</span> additive, migration-free</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── CTA ───────────────────────── -->
+  <section class="relative py-24">
+    <div class="glow-orb w-[30rem] h-[30rem] bg-plasma bottom-0 left-1/2 -translate-x-1/2"></div>
+    <div class="relative max-w-3xl mx-auto px-5 sm:px-8 text-center">
+      <div class="reveal glass rounded-3xl px-8 py-14 sm:px-14">
+        <p class="font-mono text-sm text-neon mb-4">// see it in the editor</p>
+        <h2 class="text-4xl sm:text-5xl font-bold text-white tracking-tight leading-tight">
+          The shape is simple.<br/><span class="gradient-text">The reach is not.</span>
+        </h2>
+        <p class="mt-5 text-slate-400 text-lg">Open the live editor and watch a blueprint render into a multilingual lect.</p>
+        <div class="mt-9 flex flex-wrap items-center justify-center gap-4">
+          <a href="https://cms.eventuai.com" target="_blank" rel="noopener"
+             class="neon-btn inline-block px-10 py-4 rounded-xl bg-gradient-to-r from-neon/20 to-plasma/20 border border-neon/60 text-white font-bold font-mono text-lg">
+            Launch 0xCMS ↗
+          </a>
+          <a href="index.html#get-started" class="px-8 py-4 rounded-xl glass glass-hover text-slate-200 font-mono font-semibold">$ get started</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── FOOTER ───────────────────────── -->
+  <footer class="border-t border-white/5 py-10">
+    <div class="max-w-7xl mx-auto px-5 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs text-slate-600">
+      <div class="flex items-center gap-2">
+        <span class="text-neon font-bold">0xCMS</span>
+        <span>— content management, edge-native.</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <a href="index.html#features" class="hover:text-neon transition-colors">features</a>
+        <a href="page.html" class="hover:text-neon transition-colors">data model</a>
+        <a href="index.html#get-started" class="hover:text-neon transition-colors">docs</a>
+        <a href="https://cms.eventuai.com" target="_blank" rel="noopener" class="hover:text-neon transition-colors">app ↗</a>
+      </div>
+      <div>built on <span class="text-plasma">Cloudflare Workers</span> ⚡</div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+  <script src="webgl-bg.js"></script>
+</body>
+</html>
